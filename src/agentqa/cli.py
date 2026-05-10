@@ -84,6 +84,35 @@ def run(
 
 @main.command()
 @click.argument("trace_path", type=click.Path(exists=True))
+@click.option("--format", "fmt", default="html", type=click.Choice(["html", "mast"]), show_default=True,
+              help="Export format: 'html' for a self-contained static page, 'mast' for MAST annotation JSONL.")
+@click.option("--output", "-o", default=None, type=click.Path(), help="Output file path. Defaults to <trace>.html or <trace>.mast.jsonl.")
+@click.option("--title", default="AgentQA Trace", show_default=True, help="Title for HTML exports.")
+def export(trace_path: str, fmt: str, output: str | None, title: str) -> None:
+    """Export a trace JSONL to a human-readable or tool-compatible format."""
+    from agentqa.trace import Trace
+    from agentqa.export import export_html, export_mast
+
+    src = Path(trace_path)
+    trace = Trace.from_jsonl(src)
+
+    if output:
+        dest = Path(output)
+    elif fmt == "html":
+        dest = src.with_suffix(".html")
+    else:
+        dest = src.with_suffix(".mast.jsonl")
+
+    if fmt == "html":
+        export_html(trace, dest, title=title)
+    else:
+        export_mast(trace, dest)
+
+    click.echo(f"Exported {fmt} → {dest}")
+
+
+@main.command()
+@click.argument("trace_path", type=click.Path(exists=True))
 @click.option("--scenario", "scenario_path", required=True, type=click.Path(exists=True),
               help="Scenario YAML file whose assertions should be replayed.")
 @click.option("--up-to-turn", default=None, type=int,

@@ -16,6 +16,10 @@ import agentqa.properties.task_adherence  # noqa: F401
 import agentqa.properties.peer_input  # noqa: F401
 import agentqa.properties.step_repetition  # noqa: F401
 import agentqa.properties.communication_quality  # noqa: F401
+# v0.4 checkers
+import agentqa.properties.premature_termination  # noqa: F401
+import agentqa.properties.clarification  # noqa: F401
+import agentqa.properties.task_compliance  # noqa: F401
 
 from agentqa.properties.base import PropertyResult, registry  # noqa: F401
 

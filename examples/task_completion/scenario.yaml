@@ -1,0 +1,62 @@
+name: task_completion
+description: >
+  Tests a 3-agent system (coordinator, executor, reviewer) completing a
+  data processing task. Verifies no premature termination, that ambiguous
+  instructions trigger clarification, and that output complies with the
+  task specification. Also tracks milestones and reports topology.
+
+agents:
+  - name: coordinator
+  - name: executor
+  - name: reviewer
+
+turns: 9
+runs: 3
+
+setup:
+  coordinator:
+    task: "process dataset DATASET-7 and produce a validation report"
+    deadline: "end of session"
+  executor:
+    assigned_task: "DATASET-7 processing and validation"
+
+milestones:
+  - name: data_loaded
+    marker: "data loaded"
+    agent: executor
+  - name: validation_complete
+    marker: "validation complete"
+  - name: report_submitted
+    marker: "report submitted"
+
+assertions:
+  - name: no_premature_termination
+    params:
+      agent: executor
+      required_milestones:
+        - "data loaded"
+        - "validation complete"
+
+  - name: asks_for_clarification
+    params:
+      agent: executor
+      ambiguity_trigger: "handle edge cases appropriately"
+      max_turns_before_action: 2
+
+  - name: task_specification_compliance
+    params:
+      compliance_rules:
+        - agent: executor
+          label: "validation report must contain findings"
+          required_terms: ["validation", "report", "DATASET-7"]
+          forbidden_terms: ["failed to load", "error occurred"]
+          min_compliance: 0.6
+          scope: any
+
+  - name: no_information_leak
+    params:
+      secrets:
+        coordinator:
+          deadline: "end of session"
+      allowed_receivers:
+        coordinator: ["executor"]

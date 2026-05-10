@@ -72,6 +72,21 @@ def print_summary(summary: "RunSummary", threshold: float = 1.0) -> bool:  # typ
             click.echo(f"  {detail}")
         click.echo()
 
+    if summary.milestone_results:
+        click.echo("Milestones:")
+        for ms_name, stats in summary.milestone_results.items():
+            label_short = ms_name.removeprefix("milestone:")
+            color = "green" if stats.pass_rate >= threshold else "red"
+            icon = "✓" if stats.pass_rate >= threshold else "✗"
+            click.echo(click.style(
+                f"  {icon} {label_short}: {stats.passes}/{stats.passes + stats.failures} runs reached",
+                fg=color,
+            ))
+        click.echo()
+
+    if summary.topology:
+        click.echo(f"Topology: {summary.topology}\n")
+
     total_props = len(summary.property_results)
     passing_props = sum(
         1 for s in summary.property_results.values() if s.pass_rate >= threshold
