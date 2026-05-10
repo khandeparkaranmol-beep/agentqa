@@ -113,6 +113,100 @@ def export(trace_path: str, fmt: str, output: str | None, title: str) -> None:
 
 @main.command()
 @click.argument("trace_path", type=click.Path(exists=True))
+@click.option("--output", "-o", default=None, type=click.Path(), help="Output HTML file. Defaults to <trace>.html.")
+@click.option("--title", default=None, help="Page title (defaults to the trace filename).")
+@click.option("--no-open", is_flag=True, help="Write the file but do not open it in a browser.")
+def view(trace_path: str, output: str | None, title: str | None, no_open: bool) -> None:
+    """Export a trace JSONL to an interactive HTML viewer and open it."""
+    import webbrowser
+    from agentqa.trace import Trace
+    from agentqa.export import export_html
+
+    src = Path(trace_path)
+    dest = Path(output) if output else src.with_suffix(".html")
+    label = title or src.stem
+
+    trace = Trace.from_jsonl(src)
+    export_html(trace, dest, title=label)
+    click.echo(f"Viewer → {dest}")
+
+    if not no_open:
+        webbrowser.open(dest.resolve().as_uri())
+
+
+@main.command("diff")
+@click.argument("trace_a", type=click.Path(exists=True))
+@click.argument("trace_b", type=click.Path(exists=True))
+@click.option("--output", "-o", default=None, type=click.Path(), help="Output HTML file.")
+@click.option("--title-a", default=None, help="Label for the first trace.")
+@click.option("--title-b", default=None, help="Label for the second trace.")
+@click.option("--no-open", is_flag=True, help="Write the file but do not open it in a browser.")
+def diff_cmd(
+    trace_a: str,
+    trace_b: str,
+    output: str | None,
+    title_a: str | None,
+    title_b: str | None,
+    no_open: bool,
+) -> None:
+    """Open a side-by-side diff of two trace JSONL files."""
+    import webbrowser
+    from agentqa.trace import Trace
+    from agentqa.export import diff_html
+
+    src_a = Path(trace_a)
+    src_b = Path(trace_b)
+    dest = Path(output) if output else src_a.with_name(f"{src_a.stem}_vs_{src_b.stem}.html")
+    label_a = title_a or src_a.stem
+    label_b = title_b or src_b.stem
+
+    t_a = Trace.from_jsonl(src_a)
+    t_b = Trace.from_jsonl(src_b)
+    diff_html(t_a, t_b, dest, title_a=label_a, title_b=label_b)
+    click.echo(f"Diff viewer → {dest}")
+
+    if not no_open:
+        webbrowser.open(dest.resolve().as_uri())
+
+
+@main.command()
+@click.argument("directory", type=click.Path(exists=True, file_okay=False))
+@click.option("--output", "-o", default=None, type=click.Path(), help="Output HTML file.")
+@click.option("--title", default="AgentQA Dashboard", show_default=True)
+@click.option("--no-open", is_flag=True, help="Write the file but do not open it in a browser.")
+def dashboard(directory: str, output: str | None, title: str, no_open: bool) -> None:
+    """Build an aggregate dashboard from all trace JSONL files in DIRECTORY."""
+    import webbrowser
+    from agentqa.trace import Trace
+    from agentqa.export import dashboard_html
+
+    src = Path(directory)
+    jsonl_files = sorted(src.glob("**/*.jsonl"))
+    if not jsonl_files:
+        click.echo(f"No .jsonl trace files found in: {directory}", err=True)
+        sys.exit(1)
+
+    traces: list[tuple[str, Trace]] = []
+    for p in jsonl_files:
+        try:
+            traces.append((p.stem, Trace.from_jsonl(p)))
+        except Exception as exc:
+            click.echo(f"  Skipping {p.name}: {exc}", err=True)
+
+    if not traces:
+        click.echo("No valid traces loaded.", err=True)
+        sys.exit(1)
+
+    dest = Path(output) if output else src / "dashboard.html"
+    dashboard_html(traces, dest, title=title)
+    click.echo(f"Dashboard → {dest} ({len(traces)} scenarios)")
+
+    if not no_open:
+        webbrowser.open(dest.resolve().as_uri())
+
+
+@main.command()
+@click.argument("trace_path", type=click.Path(exists=True))
 @click.option("--scenario", "scenario_path", required=True, type=click.Path(exists=True),
               help="Scenario YAML file whose assertions should be replayed.")
 @click.option("--up-to-turn", default=None, type=int,

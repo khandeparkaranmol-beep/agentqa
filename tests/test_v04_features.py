@@ -220,7 +220,7 @@ class TestExport:
         try:
             export_html(trace, path, title="Test Run")
             html = path.read_text()
-            assert "<!DOCTYPE html>" in html
+            assert "<!doctype html>" in html.lower()
             assert "Test Run" in html
             assert "hello world" in html
             assert "hi there" in html
