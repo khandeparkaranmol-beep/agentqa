@@ -33,3 +33,9 @@ Thumbs.db
 .pytest_cache/
 .coverage
 htmlcov/
+
+# Claude Code local state (settings.local.json is intentionally tracked)
+.claude/worktrees/
+
+# Local ideation drafts (not part of the project)
+archive-ideation/
