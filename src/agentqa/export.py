@@ -6,6 +6,9 @@ from pathlib import Path
 from agentqa.trace import Trace
 from agentqa.topology import topology_summary
 
+_VIEWER_TEMPLATE = Path(__file__).parent / "viewer" / "index.html"
+_DATA_PLACEHOLDER = "</head>"
+
 
 def export_mast(trace: Trace, path: Path) -> None:
     """Export a trace in MAST-compatible annotation format.
@@ -72,11 +75,14 @@ def export_mast(trace: Trace, path: Path) -> None:
 
 
 def export_html(trace: Trace, path: Path, title: str = "AgentQA Trace") -> None:
-    """Export a trace as a self-contained static HTML file.
+    """Export a trace as a self-contained interactive HTML file (React viewer).
 
-    Produces a human-readable, shareable HTML page showing all messages
-    as a conversation timeline with property check results annotated.
-    No server required — the file works when opened directly in a browser.
+    Embeds the prebuilt React swimlane viewer with the trace data injected at
+    ``window.__AGENTQA_DATA__``. The output is a single portable file that
+    works when opened directly in any modern browser — no server required.
+
+    Falls back to a basic HTML template if the React bundle is not present
+    (e.g. a developer checkout that hasn't run ``npm run build``).
 
     Args:
         trace: The completed Trace to export.
@@ -85,111 +91,184 @@ def export_html(trace: Trace, path: Path, title: str = "AgentQA Trace") -> None:
     """
     path.parent.mkdir(parents=True, exist_ok=True)
     topo = topology_summary(trace)
-    messages = trace.get_messages()
-    cost = trace.cost_summary()
-    property_events = [
-        e for e in trace.events
+
+    property_results = [
+        {
+            "property_name": e.data.get("property_name", ""),
+            "passed": bool(e.data.get("passed", True)),
+            "details": e.data.get("details", ""),
+            "turn": e.turn if e.turn >= 0 else None,
+        }
+        for e in trace.events
         if e.type == "property_check" and not e.data.get("is_milestone")
     ]
-    milestone_events = [
-        e for e in trace.events
-        if e.type == "property_check" and e.data.get("is_milestone")
-    ]
 
-    # Build message rows
+    data: dict = {
+        "mode": "trace",
+        "title": title,
+        "topology": topo["topology"],
+        "agentqa_version": _get_version(),
+        "events": [e.model_dump() for e in trace.events],
+        "results": property_results,
+    }
+
+    _write_viewer_html(data, title, path)
+
+
+def diff_html(
+    trace_a: Trace,
+    trace_b: Trace,
+    path: Path,
+    title_a: str = "Run A",
+    title_b: str = "Run B",
+) -> None:
+    """Export a side-by-side diff of two traces as a self-contained HTML file.
+
+    Uses the React viewer in diff mode, showing both traces turn-by-turn with
+    differences highlighted. Useful for comparing baseline vs. fault-injected
+    runs, or two different agent configurations.
+
+    Args:
+        trace_a: First trace (left column).
+        trace_b: Second trace (right column).
+        path: Output file path.
+        title_a: Label for the first trace.
+        title_b: Label for the second trace.
+    """
+    path.parent.mkdir(parents=True, exist_ok=True)
+
+    def _results(t: Trace) -> list[dict]:
+        return [
+            {
+                "property_name": e.data.get("property_name", ""),
+                "passed": bool(e.data.get("passed", True)),
+                "details": e.data.get("details", ""),
+                "turn": e.turn if e.turn >= 0 else None,
+            }
+            for e in t.events
+            if e.type == "property_check" and not e.data.get("is_milestone")
+        ]
+
+    data: dict = {
+        "mode": "diff",
+        "title": title_a,
+        "title_b": title_b,
+        "agentqa_version": _get_version(),
+        "events": [e.model_dump() for e in trace_a.events],
+        "results": _results(trace_a),
+        "trace_b": [e.model_dump() for e in trace_b.events],
+        "results_b": _results(trace_b),
+    }
+
+    _write_viewer_html(data, f"Diff: {title_a} vs {title_b}", path)
+
+
+def dashboard_html(
+    traces: list[tuple[str, Trace]],
+    path: Path,
+    title: str = "AgentQA Dashboard",
+) -> None:
+    """Export an aggregate dashboard across multiple named traces.
+
+    Renders the React viewer in dashboard mode with one ``ScenarioSummary``
+    entry per trace.  Pass rates are computed from property_check events.
+
+    Args:
+        traces: List of (name, trace) pairs, one per scenario/run.
+        path: Output file path.
+        title: Dashboard page title.
+    """
+    path.parent.mkdir(parents=True, exist_ok=True)
+
+    scenarios: list[dict] = []
+    for name, trace in traces:
+        topo = topology_summary(trace)
+        props: dict[str, dict] = {}
+        milestones: dict[str, dict] = {}
+
+        for e in trace.events:
+            if e.type != "property_check":
+                continue
+            prop_name: str = e.data.get("property_name", "")
+            passed = bool(e.data.get("passed", True))
+            is_ms = bool(e.data.get("is_milestone", False))
+            bucket = milestones if is_ms else props
+            if prop_name not in bucket:
+                bucket[prop_name] = {"passes": 0, "failures": 0, "pass_rate": 0.0}
+            bucket[prop_name]["passes" if passed else "failures"] += 1
+
+        for bucket in (props, milestones):
+            for rec in bucket.values():
+                total = rec["passes"] + rec["failures"]
+                rec["pass_rate"] = rec["passes"] / total if total else 1.0
+
+        scenarios.append({
+            "name": name,
+            "total_runs": 1,
+            "topology": topo["topology"],
+            "properties": props,
+            "milestones": milestones,
+        })
+
+    data: dict = {
+        "mode": "dashboard",
+        "title": title,
+        "agentqa_version": _get_version(),
+        "events": [],
+        "results": [],
+        "scenarios": scenarios,
+    }
+    _write_viewer_html(data, title, path)
+
+
+def _write_viewer_html(data: dict, title: str, path: Path) -> None:
+    """Inject data into the React bundle and write to path.
+
+    Inserts a ``<script>`` tag that assigns the JSON payload to
+    ``window.__AGENTQA_DATA__`` immediately before ``</head>`` so the React
+    app can read it on load.  If the prebuilt bundle is missing, falls back to
+    a minimal text-only HTML page.
+    """
+    if not _VIEWER_TEMPLATE.exists():
+        _write_fallback_html(data, title, path)
+        return
+
+    template = _VIEWER_TEMPLATE.read_text(encoding="utf-8")
+    payload = json.dumps(data, ensure_ascii=False)
+    injection = f"<script>window.__AGENTQA_DATA__={payload};</script>"
+    html = template.replace(_DATA_PLACEHOLDER, injection + "\n" + _DATA_PLACEHOLDER, 1)
+    path.write_text(html, encoding="utf-8")
+
+
+def _write_fallback_html(data: dict, title: str, path: Path) -> None:
+    """Minimal HTML fallback used when the React bundle has not been built."""
+    events = data.get("events", [])
+    messages = [e for e in events if e.get("type") == "message"]
     msg_rows = ""
-    for event in messages:
-        sender = event.data.get("sender", "?")
-        receiver = event.data.get("receiver", "?")
-        content = _escape(event.data.get("content", ""))
+    for e in messages:
+        sender = _escape(e.get("data", {}).get("sender", "?"))
+        receiver = _escape(e.get("data", {}).get("receiver", "?"))
+        content = _escape(e.get("data", {}).get("content", ""))
+        turn = e.get("turn", "?")
         msg_rows += (
             f'<div class="message">'
-            f'<span class="turn">[Turn {event.turn}]</span> '
-            f'<span class="sender">{_escape(sender)}</span> → '
-            f'<span class="receiver">{_escape(receiver)}</span>'
-            f'<div class="content">{content}</div>'
-            f"</div>\n"
-        )
-
-    # Build property rows
-    prop_rows = ""
-    for event in property_events:
-        passed = event.data.get("passed", True)
-        icon = "✓" if passed else "✗"
-        cls = "pass" if passed else "fail"
-        name = _escape(event.data.get("property_name", ""))
-        details = _escape(event.data.get("details", ""))
-        prop_rows += (
-            f'<div class="prop {cls}">'
-            f'<span class="icon">{icon}</span> '
-            f'<strong>{name}</strong>: {details}'
-            f"</div>\n"
-        )
-
-    # Build milestone rows
-    ms_rows = ""
-    for event in milestone_events:
-        passed = event.data.get("passed", True)
-        icon = "✓" if passed else "✗"
-        cls = "pass" if passed else "fail"
-        name = _escape(event.data.get("property_name", "").removeprefix("milestone:"))
-        details = _escape(event.data.get("details", ""))
-        ms_rows += (
-            f'<div class="prop {cls}">'
-            f'<span class="icon">{icon}</span> '
-            f'<strong>{name}</strong>: {details}'
-            f"</div>\n"
-        )
-
-    cost_line = ""
-    if cost.total_input_tokens or cost.total_cost_usd:
-        cost_line = (
-            f"<p><strong>Cost:</strong> {cost.total_input_tokens} in / "
-            f"{cost.total_output_tokens} out tokens"
-            + (f" (${cost.total_cost_usd:.4f})" if cost.total_cost_usd else "")
-            + "</p>"
+            f'<span class="turn">[Turn {turn}]</span> '
+            f'<strong>{sender}</strong> → <strong>{receiver}</strong>'
+            f'<div class="content">{content}</div></div>\n'
         )
 
     html = f"""<!DOCTYPE html>
-<html lang="en">
-<head>
-<meta charset="utf-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
+<html lang="en"><head><meta charset="utf-8">
 <title>{_escape(title)}</title>
 <style>
-  body {{ font-family: system-ui, sans-serif; max-width: 860px; margin: 40px auto; padding: 0 20px; color: #222; }}
-  h1 {{ font-size: 1.4rem; margin-bottom: 4px; }}
-  .meta {{ color: #666; font-size: 0.9rem; margin-bottom: 24px; }}
-  .message {{ background: #f7f7f7; border-left: 3px solid #ccc; margin: 8px 0; padding: 10px 14px; border-radius: 0 4px 4px 0; }}
-  .turn {{ color: #888; font-size: 0.85rem; }}
-  .sender {{ font-weight: 600; color: #1a73e8; }}
-  .receiver {{ font-weight: 600; color: #e37400; }}
-  .content {{ margin-top: 6px; font-size: 0.95rem; white-space: pre-wrap; }}
-  h2 {{ font-size: 1.1rem; margin-top: 32px; border-bottom: 1px solid #ddd; padding-bottom: 6px; }}
-  .prop {{ padding: 8px 12px; margin: 4px 0; border-radius: 4px; font-size: 0.92rem; }}
-  .prop.pass {{ background: #e6f4ea; border-left: 3px solid #34a853; }}
-  .prop.fail {{ background: #fce8e6; border-left: 3px solid #ea4335; }}
-  .icon {{ font-size: 1rem; margin-right: 4px; }}
-  footer {{ margin-top: 40px; font-size: 0.8rem; color: #aaa; }}
-</style>
-</head>
-<body>
-<h1>{_escape(title)}</h1>
-<div class="meta">
-  {len(messages)} turns &middot; {topo['agents']} agents &middot; topology: <strong>{topo['topology']}</strong>
-  {cost_line}
-</div>
-
-<h2>Interaction</h2>
+body{{font-family:system-ui,sans-serif;max-width:860px;margin:40px auto;padding:0 20px}}
+.message{{background:#f7f7f7;border-left:3px solid #ccc;margin:8px 0;padding:10px 14px}}
+.turn{{color:#888;font-size:.85rem}}.content{{margin-top:6px;white-space:pre-wrap}}
+</style></head>
+<body><h1>{_escape(title)}</h1>
+<p><em>Note: interactive viewer not available — run <code>npm run build</code> in frontend/</em></p>
 {msg_rows}
-
-{"<h2>Properties</h2>" + prop_rows if prop_rows else ""}
-{"<h2>Milestones</h2>" + ms_rows if ms_rows else ""}
-
-<footer>Generated by <a href="https://github.com/khandeparkaranmol-beep/agentqa">AgentQA</a> {_get_version()}</footer>
-</body>
-</html>"""
-
+</body></html>"""
     path.write_text(html, encoding="utf-8")
 
 
