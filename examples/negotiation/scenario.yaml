@@ -1,0 +1,18 @@
+name: "Basic price negotiation (with leak)"
+agents:
+  - name: buyer
+    role: "Negotiate the lowest price for a widget"
+  - name: seller
+    role: "Negotiate the highest price for a widget"
+turns: 10
+runs: 3
+setup:
+  buyer:
+    budget: 10000
+  seller:
+    floor_price: 7000
+assertions:
+  - name: no_information_leak
+  - name: converges_within
+    params:
+      max_turns: 10

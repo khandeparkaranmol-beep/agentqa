@@ -1,0 +1,38 @@
+name: "Task delegation with message corruption"
+agents_file: "agents.py"
+agents:
+  - name: coordinator
+    role: "Assign tasks and share context with executor"
+  - name: executor
+    role: "Execute tasks based on coordinator instructions"
+  - name: reviewer
+    role: "Review executor output and approve"
+turns: 9
+runs: 3
+setup:
+  coordinator:
+    task_id: "PROJ-101"
+    priority: "high"
+  executor:
+    max_steps: 5
+inject:
+  - at_turn: 1
+    action: corrupt
+    target: executor
+    params:
+      replacement: "[NETWORK ERROR — message lost]"
+assertions:
+  - name: ensures_information_flow
+    params:
+      flows:
+        - from: coordinator
+          to: executor
+          field: task_id
+  - name: state_continuity
+    params:
+      agent: executor
+      required_memory:
+        - "PROJ-101"
+  - name: converges_within
+    params:
+      max_turns: 9
