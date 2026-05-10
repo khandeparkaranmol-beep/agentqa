@@ -4,7 +4,7 @@ build-backend = "setuptools.build_meta"
 
 [project]
 name = "agentqa"
-version = "0.2.0"
+version = "0.3.0"
 description = "Multi-agent interaction testing framework — catch deadlocks, leaks, and role violations before production"
 readme = "README.md"
 requires-python = ">=3.10"
