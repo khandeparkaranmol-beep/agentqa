@@ -44,11 +44,11 @@ export function FilterBar({ allAgents, filters, onChange }: Props) {
   const clearAll = () => onChange(EMPTY_FILTERS);
 
   return (
-    <div className="rounded-xl border border-slate-200 bg-white shadow-sm overflow-hidden">
+    <div className="rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 shadow-sm dark:shadow-slate-900/50 overflow-hidden">
       <div className="flex items-center gap-2 px-4 py-2">
         <button
           onClick={() => setExpanded(!expanded)}
-          className="flex items-center gap-1.5 text-xs font-medium text-slate-600 hover:text-slate-800 transition-colors"
+          className="flex items-center gap-1.5 text-xs font-medium text-slate-600 dark:text-slate-400 hover:text-slate-800 dark:hover:text-slate-200 transition-colors"
         >
           <svg
             width="14"
@@ -76,7 +76,7 @@ export function FilterBar({ allAgents, filters, onChange }: Props) {
             value={filters.searchText}
             onChange={(e) => onChange({ ...filters, searchText: e.target.value })}
             placeholder="Search messages…"
-            className="w-full text-xs bg-slate-50 border border-slate-200 rounded-lg px-3 py-1.5 pl-7 text-slate-700 placeholder-slate-400 focus:outline-none focus:border-indigo-300 focus:ring-1 focus:ring-indigo-200 transition-colors"
+            className="w-full text-xs bg-slate-50 dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded-lg px-3 py-1.5 pl-7 text-slate-700 dark:text-slate-300 placeholder-slate-400 dark:placeholder-slate-500 focus:outline-none focus:border-indigo-300 dark:focus:border-indigo-600 focus:ring-1 focus:ring-indigo-200 dark:focus:ring-indigo-800 transition-colors"
           />
           <svg
             width="12"
@@ -95,7 +95,7 @@ export function FilterBar({ allAgents, filters, onChange }: Props) {
         {active && (
           <button
             onClick={clearAll}
-            className="text-xs text-slate-400 hover:text-red-500 transition-colors flex-shrink-0"
+            className="text-xs text-slate-400 dark:text-slate-500 hover:text-red-500 dark:hover:text-red-400 transition-colors flex-shrink-0"
           >
             Clear
           </button>
@@ -103,10 +103,10 @@ export function FilterBar({ allAgents, filters, onChange }: Props) {
       </div>
 
       {expanded && (
-        <div className="px-4 pb-3 pt-1 border-t border-slate-100 flex flex-wrap items-center gap-3">
+        <div className="px-4 pb-3 pt-1 border-t border-slate-100 dark:border-slate-700 flex flex-wrap items-center gap-3">
           {/* Agent chips */}
           <div className="flex items-center gap-1.5 flex-wrap">
-            <span className="text-xs text-slate-400 font-medium mr-1">Agents:</span>
+            <span className="text-xs text-slate-400 dark:text-slate-500 font-medium mr-1">Agents:</span>
             {allAgents.map((agent) => {
               const on = filters.agents.size === 0 || filters.agents.has(agent);
               return (
@@ -115,8 +115,8 @@ export function FilterBar({ allAgents, filters, onChange }: Props) {
                   onClick={() => toggleAgent(agent)}
                   className={`text-xs px-2 py-0.5 rounded-full border transition-colors ${
                     on
-                      ? "bg-indigo-50 border-indigo-200 text-indigo-700"
-                      : "bg-slate-50 border-slate-200 text-slate-400"
+                      ? "bg-indigo-50 dark:bg-indigo-900/30 border-indigo-200 dark:border-indigo-700 text-indigo-700 dark:text-indigo-400"
+                      : "bg-slate-50 dark:bg-slate-700 border-slate-200 dark:border-slate-600 text-slate-400 dark:text-slate-500"
                   }`}
                 >
                   {agent}
@@ -125,7 +125,7 @@ export function FilterBar({ allAgents, filters, onChange }: Props) {
             })}
           </div>
 
-          <div className="w-px h-5 bg-slate-200" />
+          <div className="w-px h-5 bg-slate-200 dark:bg-slate-600" />
 
           {/* Toggle chips */}
           <ToggleChip
@@ -162,7 +162,7 @@ function ToggleChip({
       ? { on: "bg-orange-50 border-orange-200 text-orange-700", off: "bg-red-50 border-red-200 text-red-600" }
       : { on: "bg-red-50 border-red-200 text-red-700", off: "bg-emerald-50 border-emerald-200 text-emerald-600" };
 
-  let cls = "bg-slate-50 border-slate-200 text-slate-500";
+  let cls = "bg-slate-50 dark:bg-slate-700 border-slate-200 dark:border-slate-600 text-slate-500 dark:text-slate-400";
   let suffix = "";
   if (state === true) {
     cls = colors.on;

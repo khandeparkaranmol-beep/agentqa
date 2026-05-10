@@ -10,7 +10,7 @@ export function ReplayControls({ replay, totalTurns }: Props) {
   const atStart = visibleUpTo < 0;
   const atEnd = visibleUpTo >= totalTurns - 1;
   return (
-    <div className="flex items-center gap-3 px-4 py-2.5 bg-white border border-slate-200 rounded-xl shadow-sm">
+    <div className="flex items-center gap-3 px-4 py-2.5 bg-white dark:bg-slate-800 border border-slate-200 dark:border-slate-700 rounded-xl shadow-sm dark:shadow-slate-900/50">
       {/* Transport buttons */}
       <div className="flex items-center gap-1">
         <Btn onClick={replay.jumpToStart} disabled={atStart} title="Jump to start (Home)">
@@ -50,7 +50,7 @@ export function ReplayControls({ replay, totalTurns }: Props) {
       </div>
 
       {/* Turn counter */}
-      <span className="text-xs font-mono text-slate-500 tabular-nums w-16 text-center flex-shrink-0">
+      <span className="text-xs font-mono text-slate-500 dark:text-slate-400 tabular-nums w-16 text-center flex-shrink-0">
         {visibleUpTo < 0 ? "—" : `T${visibleUpTo}`} / {totalTurns - 1}
       </span>
 
@@ -62,8 +62,8 @@ export function ReplayControls({ replay, totalTurns }: Props) {
             onClick={() => replay.setSpeed(s)}
             className={`text-xs px-1.5 py-0.5 rounded font-medium transition-colors ${
               speed === s
-                ? "bg-indigo-100 text-indigo-700"
-                : "text-slate-400 hover:text-slate-600 hover:bg-slate-100"
+                ? "bg-indigo-100 dark:bg-indigo-900/30 text-indigo-700 dark:text-indigo-400"
+                : "text-slate-400 hover:text-slate-600 dark:hover:text-slate-300 hover:bg-slate-100 dark:hover:bg-slate-700"
             }`}
           >
             {s}x
@@ -95,7 +95,7 @@ function Btn({
       className={`w-8 h-8 flex items-center justify-center rounded-lg transition-colors disabled:opacity-30 disabled:cursor-not-allowed ${
         accent
           ? "bg-indigo-500 text-white hover:bg-indigo-600 disabled:hover:bg-indigo-500"
-          : "text-slate-500 hover:bg-slate-100 hover:text-slate-700"
+          : "text-slate-500 dark:text-slate-400 hover:bg-slate-100 dark:hover:bg-slate-700 hover:text-slate-700 dark:hover:text-slate-200"
       }`}
     >
       {children}

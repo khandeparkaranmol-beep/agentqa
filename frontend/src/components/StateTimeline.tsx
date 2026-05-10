@@ -1,5 +1,6 @@
 import { useState } from "react";
 import type { TraceEvent } from "../types";
+import { InfoTip } from "./InfoTip";
 
 interface Props {
   events: TraceEvent[];
@@ -25,12 +26,15 @@ export function StateTimeline({ events, agents, visibleUpTo }: Props) {
   }
 
   return (
-    <div className="rounded-xl border border-slate-200 bg-white shadow-sm overflow-hidden">
-      <div className="px-5 py-3 border-b border-slate-200 bg-slate-50 flex items-center justify-between">
-        <h2 className="text-sm font-semibold text-slate-700">Agent State</h2>
-        <span className="text-xs text-slate-400">{stateEvents.length} changes</span>
+    <div className="rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 shadow-sm dark:shadow-slate-900/50 overflow-hidden">
+      <div className="px-5 py-3 border-b border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 flex items-center justify-between">
+        <div className="flex items-center gap-1.5">
+          <h2 className="text-sm font-semibold text-slate-700 dark:text-slate-300">Agent State</h2>
+          <InfoTip text="Each agent's internal memory and variables (e.g. offer price, counters). Click an agent row to see how their state changed at each turn." />
+        </div>
+        <span className="text-xs text-slate-400 dark:text-slate-500 flex-shrink-0">{stateEvents.length} changes</span>
       </div>
-      <div className="divide-y divide-slate-100">
+      <div className="divide-y divide-slate-100 dark:divide-slate-700">
         {agents
           .filter((a) => byAgent.has(a))
           .map((agent) => {
@@ -42,7 +46,7 @@ export function StateTimeline({ events, agents, visibleUpTo }: Props) {
               <div key={agent}>
                 <button
                   onClick={() => setExpandedAgent(isExpanded ? null : agent)}
-                  className="w-full px-5 py-3 flex items-center gap-3 hover:bg-slate-50 transition-colors text-left"
+                  className="w-full px-5 py-3 flex items-center gap-3 hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors text-left"
                 >
                   <svg
                     width="10"
@@ -53,8 +57,8 @@ export function StateTimeline({ events, agents, visibleUpTo }: Props) {
                   >
                     <path d="M3 1l5 4-5 4z" />
                   </svg>
-                  <span className="text-sm font-medium text-slate-800">{agent}</span>
-                  <span className="text-xs text-slate-400 ml-auto">
+                  <span className="text-sm font-medium text-slate-800 dark:text-slate-200">{agent}</span>
+                  <span className="text-xs text-slate-400 dark:text-slate-500 ml-auto">
                     {changes.length} change{changes.length !== 1 ? "s" : ""}
                     {" · "}last at T{latest.turn}
                   </span>
@@ -64,17 +68,17 @@ export function StateTimeline({ events, agents, visibleUpTo }: Props) {
                     {changes.map((change, i) => (
                       <div
                         key={i}
-                        className="rounded-lg border border-slate-100 bg-slate-50 overflow-hidden"
+                        className="rounded-lg border border-slate-100 dark:border-slate-600 bg-slate-50 dark:bg-slate-700 overflow-hidden"
                       >
-                        <div className="px-3 py-1.5 bg-slate-100 text-xs text-slate-500 font-medium flex items-center justify-between">
+                        <div className="px-3 py-1.5 bg-slate-100 dark:bg-slate-600 text-xs text-slate-500 dark:text-slate-400 font-medium flex items-center justify-between">
                           <span className="font-mono">Turn {change.turn}</span>
                           {typeof change.data.field === "string" && (
-                            <span className="text-indigo-600 font-mono">
+                            <span className="text-indigo-600 dark:text-indigo-400 font-mono">
                               {change.data.field}
                             </span>
                           )}
                         </div>
-                        <pre className="px-3 py-2 text-xs text-slate-700 overflow-x-auto font-mono leading-relaxed">
+                        <pre className="px-3 py-2 text-xs text-slate-700 dark:text-slate-300 overflow-x-auto font-mono leading-relaxed">
                           {formatStateData(change.data)}
                         </pre>
                       </div>

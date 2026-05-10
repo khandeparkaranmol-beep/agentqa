@@ -8,6 +8,7 @@ interface Props {
   selected: MessageEvent | null;
   visibleUpTo: number;
   highlightedIndices?: Set<number>;
+  darkMode?: boolean;
 }
 
 const LANE_HEIGHT = 72;
@@ -18,9 +19,10 @@ const AGENT_COLORS: string[] = [
   "#6366f1", "#10b981", "#f59e0b", "#ef4444", "#8b5cf6", "#06b6d4", "#ec4899",
 ];
 
-export function SwimlaneDiagram({ agents, messages, onSelect, selected, visibleUpTo, highlightedIndices }: Props) {
+export function SwimlaneDiagram({ agents, messages, onSelect, selected, visibleUpTo, highlightedIndices, darkMode }: Props) {
   const [hoveredTurn, setHoveredTurn] = useState<number | null>(null);
   const containerRef = useRef<HTMLDivElement>(null);
+  const isDark = darkMode ?? false;
 
   const totalTurns = messages.length;
   const svgWidth = LANE_HEADER + totalTurns * TURN_WIDTH + TURN_WIDTH;
@@ -42,7 +44,7 @@ export function SwimlaneDiagram({ agents, messages, onSelect, selected, visibleU
   }, [visibleUpTo]);
 
   return (
-    <div ref={containerRef} className="overflow-x-auto rounded-xl border border-slate-200 bg-white shadow-sm">
+    <div ref={containerRef} className="overflow-x-auto rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 shadow-sm dark:shadow-slate-900/50">
       <svg
         width={svgWidth}
         height={svgHeight}
@@ -57,7 +59,7 @@ export function SwimlaneDiagram({ agents, messages, onSelect, selected, visibleU
             y={i * LANE_HEIGHT}
             width={svgWidth}
             height={LANE_HEIGHT}
-            fill={i % 2 === 0 ? "#f8fafc" : "#f1f5f9"}
+            fill={isDark ? (i % 2 === 0 ? "#1e293b" : "#1a2332") : (i % 2 === 0 ? "#f8fafc" : "#f1f5f9")}
           />
         ))}
 
@@ -87,13 +89,13 @@ export function SwimlaneDiagram({ agents, messages, onSelect, selected, visibleU
             y1={(i + 1) * LANE_HEIGHT}
             x2={svgWidth}
             y2={(i + 1) * LANE_HEIGHT}
-            stroke="#e2e8f0"
+            stroke={isDark ? "#334155" : "#e2e8f0"}
             strokeWidth={1}
           />
         ))}
 
         {/* Vertical lane header separator */}
-        <line x1={LANE_HEADER - 8} y1={0} x2={LANE_HEADER - 8} y2={svgHeight} stroke="#cbd5e1" strokeWidth={1} strokeDasharray="4 2" />
+        <line x1={LANE_HEADER - 8} y1={0} x2={LANE_HEADER - 8} y2={svgHeight} stroke={isDark ? "#475569" : "#cbd5e1"} strokeWidth={1} strokeDasharray="4 2" />
 
         {/* Playhead line */}
         {visibleUpTo >= 0 && visibleUpTo < totalTurns && (
@@ -146,7 +148,7 @@ export function SwimlaneDiagram({ agents, messages, onSelect, selected, visibleU
                   y={0}
                   width={TURN_WIDTH}
                   height={svgHeight}
-                  fill={isCurrent ? "#eef2ff" : isSelected ? "#eff6ff" : "#f8fafc"}
+                  fill={isDark ? (isCurrent ? "#312e81" : isSelected ? "#1e3a5f" : "#1e293b") : (isCurrent ? "#eef2ff" : isSelected ? "#eff6ff" : "#f8fafc")}
                   opacity={0.7}
                 />
               )}
