@@ -62,6 +62,9 @@ class SimulationEngine:
                 timestamp=time.time(),
             )
 
+            # Apply any fault injections declared for this turn and target.
+            msg = self._apply_faults(msg, turn, active_agent.name, trace)
+
             response = active_agent.receive(msg)
             logger.debug("Turn %d: %s → %s", turn, active_agent.name, response.content[:80])
 
@@ -72,6 +75,11 @@ class SimulationEngine:
                 receiver_name = next_agent.name
             else:
                 receiver_name = "__system__"
+
+            # Agents that track token usage may return cost fields in metadata.
+            input_tokens = int(response.metadata.get("input_tokens", 0))
+            output_tokens = int(response.metadata.get("output_tokens", 0))
+            cost_usd = float(response.metadata.get("cost_usd", 0.0))
 
             trace.add_event(
                 TraceEvent(
@@ -85,6 +93,9 @@ class SimulationEngine:
                         "metadata": response.metadata,
                     },
                     timestamp=time.time(),
+                    input_tokens=input_tokens,
+                    output_tokens=output_tokens,
+                    cost_usd=cost_usd,
                 )
             )
 
@@ -107,6 +118,43 @@ class SimulationEngine:
 
         self._run_property_checks(trace)
         return trace
+
+    def _apply_faults(
+        self, msg: Message, turn: int, receiver: str, trace: Trace
+    ) -> Message:
+        """Apply any matching fault injections and record fault_injected events."""
+        import agentqa.faults  # noqa: F401 — triggers self-registration
+        from agentqa.faults.base import registry as fault_registry
+
+        for fault_config in self._scenario.inject:
+            if fault_config.at_turn != turn:
+                continue
+            if fault_config.target != receiver:
+                continue
+
+            try:
+                injector = fault_registry.get(fault_config.action)
+            except KeyError as exc:
+                logger.warning("Skipping unknown fault: %s", exc)
+                continue
+
+            msg = injector.apply(msg, fault_config.params)
+            trace.add_event(
+                TraceEvent(
+                    type="fault_injected",
+                    turn=turn,
+                    agent=receiver,
+                    data={
+                        "action": fault_config.action,
+                        "target": receiver,
+                        "params": fault_config.params,
+                    },
+                    timestamp=time.time(),
+                )
+            )
+            logger.debug("Fault '%s' applied to %s at turn %d", fault_config.action, receiver, turn)
+
+        return msg
 
     def _run_property_checks(self, trace: Trace) -> None:
         """Execute all declared property checkers and attach results to the trace."""

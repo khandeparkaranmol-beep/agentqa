@@ -92,9 +92,12 @@ def _collect_scenario_paths(path: Path) -> list[Path]:
 def _resolve_agents_file(scenario_path: Path, agents_file: str | None) -> Path | None:
     """Find the agents.py file to use for this scenario."""
     if agents_file:
-        return Path(agents_file)
-    candidate = scenario_path.parent / "agents.py"
-    return candidate
+        p = Path(agents_file)
+        # Relative paths are resolved from the scenario's directory.
+        if not p.is_absolute():
+            p = scenario_path.parent / p
+        return p
+    return scenario_path.parent / "agents.py"
 
 
 def _load_agents(agents_path: Path) -> dict:

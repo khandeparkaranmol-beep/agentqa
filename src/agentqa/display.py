@@ -18,6 +18,13 @@ def print_trace(trace: Trace, scenario_name: str, run_number: int) -> None:
         click.echo(f"\n[Turn {event.turn}] {sender} → {receiver}:")
         click.echo(f'  "{content}"')
 
+    cost = trace.cost_summary()
+    if cost.total_input_tokens or cost.total_output_tokens or cost.total_cost_usd:
+        click.echo(
+            f"\nCost: {cost.total_input_tokens} in / {cost.total_output_tokens} out tokens"
+            + (f"  (${cost.total_cost_usd:.4f})" if cost.total_cost_usd else "")
+        )
+
     if trace.results:
         click.echo("\nProperties:")
         for result in trace.results:
