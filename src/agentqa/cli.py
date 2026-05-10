@@ -82,6 +82,44 @@ def run(
     sys.exit(1 if any_failure else 0)
 
 
+@main.command()
+@click.argument("trace_path", type=click.Path(exists=True))
+@click.option("--scenario", "scenario_path", required=True, type=click.Path(exists=True),
+              help="Scenario YAML file whose assertions should be replayed.")
+@click.option("--up-to-turn", default=None, type=int,
+              help="Only replay events up to (and including) this turn number.")
+@click.option("--verbose", is_flag=True, help="Enable debug output.")
+def replay(
+    trace_path: str,
+    scenario_path: str,
+    up_to_turn: int | None,
+    verbose: bool,
+) -> None:
+    """Replay property checks against a previously recorded TRACE_PATH (JSONL)."""
+    if verbose:
+        logging.basicConfig(level=logging.DEBUG)
+
+    from agentqa.scenario import load_scenario
+    from agentqa.replay import ReplayEngine
+
+    scenario = load_scenario(Path(scenario_path))
+    engine = ReplayEngine.from_jsonl(Path(trace_path), scenario)
+    results = engine.replay(up_to_turn=up_to_turn)
+
+    if not results:
+        click.echo("No assertions declared in scenario — nothing to replay.")
+        return
+
+    any_failure = False
+    for result in results:
+        status = click.style("PASS", fg="green") if result.passed else click.style("FAIL", fg="red")
+        click.echo(f"  [{status}] {result.property_name}: {result.details}")
+        if not result.passed:
+            any_failure = True
+
+    sys.exit(1 if any_failure else 0)
+
+
 def _collect_scenario_paths(path: Path) -> list[Path]:
     """Return scenario file paths from a file or directory."""
     if path.is_file():

@@ -86,6 +86,23 @@ class Trace:
             per_agent=per_agent,
         )
 
+    def snapshot(self, up_to_turn: int) -> Trace:
+        """Return a new Trace containing only events with turn <= up_to_turn.
+
+        Property_check events (turn=-1) are excluded from snapshots since they
+        are derived from the full trace, not recorded at a specific turn.
+
+        Args:
+            up_to_turn: Inclusive upper bound on turn numbers to include.
+        """
+        snap = Trace()
+        for event in self._events:
+            if event.type == "property_check":
+                continue
+            if event.turn <= up_to_turn:
+                snap.add_event(event)
+        return snap
+
     def to_jsonl(self, path: Path) -> None:
         """Write each event as one JSON line to path."""
         path.parent.mkdir(parents=True, exist_ok=True)

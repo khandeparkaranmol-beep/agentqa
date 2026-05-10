@@ -10,6 +10,12 @@ import agentqa.properties.output_schema  # noqa: F401
 import agentqa.properties.information_flow  # noqa: F401
 import agentqa.properties.state_continuity  # noqa: F401
 import agentqa.properties.conversation_reset  # noqa: F401
+# v0.3 checkers
+import agentqa.properties.reasoning_action  # noqa: F401
+import agentqa.properties.task_adherence  # noqa: F401
+import agentqa.properties.peer_input  # noqa: F401
+import agentqa.properties.step_repetition  # noqa: F401
+import agentqa.properties.communication_quality  # noqa: F401
 
 from agentqa.properties.base import PropertyResult, registry  # noqa: F401
 
