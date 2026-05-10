@@ -1,8 +1,13 @@
-import { useState } from "react";
+import { useState, useEffect, useMemo, useCallback } from "react";
 import { getAppData, buildMessageEvents, getAgents } from "./data";
+import { useReplay } from "./hooks/useReplay";
 import { SwimlaneDiagram } from "./components/SwimlaneDiagram";
+import { ReplayControls } from "./components/ReplayControls";
+import { FilterBar, EMPTY_FILTERS, hasActiveFilters } from "./components/FilterBar";
+import type { Filters } from "./components/FilterBar";
 import { MessagePanel } from "./components/MessagePanel";
 import { PropertiesPanel } from "./components/PropertiesPanel";
+import { StateTimeline } from "./components/StateTimeline";
 import { DiffView } from "./components/DiffView";
 import { Dashboard } from "./components/Dashboard";
 import type { MessageEvent } from "./types";
@@ -17,6 +22,7 @@ const TOPOLOGY_BADGES: Record<string, string> = {
 export function App() {
   const data = getAppData();
   const [selected, setSelected] = useState<MessageEvent | null>(null);
+  const [filters, setFilters] = useState<Filters>(EMPTY_FILTERS);
 
   const isTrace = data.mode === "trace";
   const isDiff = data.mode === "diff";
@@ -24,6 +30,64 @@ export function App() {
 
   const agents = isTrace ? getAgents(data.events) : [];
   const messages = isTrace ? buildMessageEvents(data.events, data.results) : [];
+
+  const replay = useReplay(messages.length);
+
+  const highlightedIndices = useMemo(() => {
+    if (!hasActiveFilters(filters)) return undefined;
+    const indices = new Set<number>();
+    const searchLower = filters.searchText.toLowerCase();
+    messages.forEach((msg, i) => {
+      if (filters.agents.size > 0 && !filters.agents.has(msg.sender) && !filters.agents.has(msg.receiver)) return;
+      if (filters.showFaults === true && !msg.hasFault) return;
+      if (filters.showFaults === false && msg.hasFault) return;
+      if (filters.showViolations === true && msg.violatedProperties.length === 0) return;
+      if (filters.showViolations === false && msg.violatedProperties.length > 0) return;
+      if (searchLower && !msg.content.toLowerCase().includes(searchLower) && !msg.sender.toLowerCase().includes(searchLower) && !msg.receiver.toLowerCase().includes(searchLower)) return;
+      indices.add(i);
+    });
+    return indices;
+  }, [filters, messages]);
+
+  const handleKeyDown = useCallback(
+    (e: KeyboardEvent) => {
+      if (!isTrace) return;
+      if (e.target instanceof HTMLInputElement || e.target instanceof HTMLTextAreaElement) return;
+
+      switch (e.key) {
+        case "ArrowRight":
+          e.preventDefault();
+          replay.stepForward();
+          break;
+        case "ArrowLeft":
+          e.preventDefault();
+          replay.stepBack();
+          break;
+        case " ":
+          e.preventDefault();
+          replay.isPlaying ? replay.pause() : replay.play();
+          break;
+        case "Home":
+          e.preventDefault();
+          replay.jumpToStart();
+          break;
+        case "End":
+          e.preventDefault();
+          replay.jumpToEnd();
+          break;
+        case "Escape":
+          e.preventDefault();
+          setSelected(null);
+          break;
+      }
+    },
+    [isTrace, replay, setSelected],
+  );
+
+  useEffect(() => {
+    window.addEventListener("keydown", handleKeyDown);
+    return () => window.removeEventListener("keydown", handleKeyDown);
+  }, [handleKeyDown]);
 
   const passCount = data.results.filter((r) => r.passed).length;
   const failCount = data.results.filter((r) => !r.passed).length;
@@ -84,13 +148,22 @@ export function App() {
       <main className="px-6 py-6 max-w-screen-2xl mx-auto">
         {isTrace && (
           <div className="flex gap-6">
-            {/* Swimlane + properties */}
-            <div className="flex-1 min-w-0 space-y-5">
+            {/* Swimlane + controls + properties */}
+            <div className="flex-1 min-w-0 space-y-4">
+              <FilterBar allAgents={agents} filters={filters} onChange={setFilters} />
+              <ReplayControls replay={replay} totalTurns={messages.length} />
               <SwimlaneDiagram
                 agents={agents}
                 messages={messages}
                 onSelect={setSelected}
                 selected={selected}
+                visibleUpTo={replay.visibleUpTo}
+                highlightedIndices={highlightedIndices}
+              />
+              <StateTimeline
+                events={data.events}
+                agents={agents}
+                visibleUpTo={replay.visibleUpTo}
               />
               <PropertiesPanel results={data.results} />
             </div>
@@ -119,6 +192,15 @@ export function App() {
           <Dashboard scenarios={data.scenarios} />
         )}
       </main>
+
+      {/* Keyboard shortcut hint */}
+      {isTrace && (
+        <div className="fixed bottom-4 left-1/2 -translate-x-1/2 bg-slate-800 text-slate-300 text-xs px-4 py-2 rounded-full shadow-lg flex items-center gap-4 opacity-60 hover:opacity-100 transition-opacity z-30 pointer-events-none">
+          <span><kbd className="bg-slate-700 px-1.5 py-0.5 rounded text-white font-mono">←</kbd> <kbd className="bg-slate-700 px-1.5 py-0.5 rounded text-white font-mono">→</kbd> step</span>
+          <span><kbd className="bg-slate-700 px-1.5 py-0.5 rounded text-white font-mono">Space</kbd> play/pause</span>
+          <span><kbd className="bg-slate-700 px-1.5 py-0.5 rounded text-white font-mono">Esc</kbd> deselect</span>
+        </div>
+      )}
     </div>
   );
 }
