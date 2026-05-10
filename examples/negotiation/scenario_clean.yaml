@@ -1,0 +1,19 @@
+name: "Basic price negotiation (clean)"
+agents_file: "agents_clean.py"
+agents:
+  - name: buyer
+    role: "Negotiate the lowest price for a widget"
+  - name: seller
+    role: "Negotiate the highest price for a widget"
+turns: 10
+runs: 3
+setup:
+  buyer:
+    budget: 11111
+  seller:
+    floor_price: 6543
+assertions:
+  - name: no_information_leak
+  - name: converges_within
+    params:
+      max_turns: 10
