@@ -117,6 +117,7 @@ class SimulationEngine:
             agent.teardown()
 
         self._run_property_checks(trace)
+        self._track_milestones(trace)
         return trace
 
     def _apply_faults(
@@ -187,6 +188,43 @@ class SimulationEngine:
                 )
             )
 
+    def _track_milestones(self, trace: Trace) -> None:
+        """Scan the trace for declared milestones and attach hit/miss results."""
+        if not self._scenario.milestones:
+            return
+
+        messages = trace.get_messages()
+        for milestone in self._scenario.milestones:
+            hit = False
+            hit_turn: int | None = None
+            for event in messages:
+                sender = event.data.get("sender", event.agent or "")
+                if milestone.agent and sender != milestone.agent:
+                    continue
+                content: str = event.data.get("content", "")
+                if milestone.marker.lower() in content.lower():
+                    hit = True
+                    hit_turn = event.turn
+                    break
+            trace.add_event(
+                TraceEvent(
+                    type="property_check",
+                    turn=hit_turn if hit_turn is not None else -1,
+                    agent=milestone.agent,
+                    data={
+                        "property_name": f"milestone:{milestone.name}",
+                        "passed": hit,
+                        "details": (
+                            f"Milestone '{milestone.name}' reached at turn {hit_turn}."
+                            if hit
+                            else f"Milestone '{milestone.name}' never reached (marker: '{milestone.marker}')."
+                        ),
+                        "is_milestone": True,
+                    },
+                    timestamp=time.time(),
+                )
+            )
+
     def run(self, n: int | None = None) -> list[Trace]:
         """Run the simulation n times and return all traces.
 
@@ -231,10 +269,48 @@ class SimulationEngine:
                 failure_details=failure_details,
             )
 
+        # Milestone stats
+        milestone_results: dict[str, PropertyStats] = {}
+        milestone_names: set[str] = set()
+        for trace in traces:
+            for event in trace.events:
+                if event.type == "property_check" and event.data.get("is_milestone"):
+                    milestone_names.add(event.data["property_name"])
+
+        for ms_name in milestone_names:
+            passes = 0
+            failures = 0
+            failure_details: list[str] = []
+            for i, trace in enumerate(traces):
+                for event in trace.events:
+                    if (
+                        event.type == "property_check"
+                        and event.data.get("is_milestone")
+                        and event.data["property_name"] == ms_name
+                    ):
+                        if event.data["passed"]:
+                            passes += 1
+                        else:
+                            failures += 1
+                            failure_details.append(f"Run {i + 1}: {event.data['details']}")
+            total = passes + failures
+            milestone_results[ms_name] = PropertyStats(
+                passes=passes,
+                failures=failures,
+                pass_rate=passes / total if total > 0 else 0.0,
+                failure_details=failure_details,
+            )
+
+        # Topology: classify based on the first trace (structure should be stable)
+        from agentqa.topology import classify_topology
+        topology = classify_topology(traces[0]) if traces else None
+
         return RunSummary(
             scenario_name=self._scenario.name,
             total_runs=len(traces),
             property_results=property_results,
+            milestone_results=milestone_results,
+            topology=topology,
         )
 
 
@@ -256,3 +332,5 @@ class RunSummary(BaseModel):
     scenario_name: str
     total_runs: int
     property_results: dict[str, PropertyStats]
+    milestone_results: dict[str, PropertyStats] = {}
+    topology: str | None = None  # populated by topology analysis if available

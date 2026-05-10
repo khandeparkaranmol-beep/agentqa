@@ -30,6 +30,14 @@ class PropertyConfig(BaseModel):
     params: dict = Field(default_factory=dict)
 
 
+class MilestoneConfig(BaseModel):
+    """A named progress milestone that can be tracked during a simulation run."""
+
+    name: str
+    marker: str   # substring to look for in any message content
+    agent: str | None = None  # if set, only match messages from this agent
+
+
 class ScenarioConfig(BaseModel):
     """Full configuration for one test scenario, loaded from YAML."""
 
@@ -41,6 +49,7 @@ class ScenarioConfig(BaseModel):
     runs: int = 5
     setup: dict = Field(default_factory=dict)
     agents_file: str | None = None  # relative path to agents.py, resolved from scenario dir
+    milestones: list[MilestoneConfig] = Field(default_factory=list)
 
     @model_validator(mode="after")
     def _validate_agent_references(self) -> ScenarioConfig:
