@@ -31,7 +31,8 @@ interface ConnectionData {
  */
 export function ConstellationView({ agents, agentRoles: _agentRoles, messages, results, visibleUpTo, speed = 1 }: Props) {
   const [isTyping, setIsTyping] = useState(false);
-  const [displayedIdx, setDisplayedIdx] = useState(-1);
+  // Mount mid-playback: show content up to current turn immediately
+  const [displayedIdx, setDisplayedIdx] = useState(visibleUpTo);
   const [showVerdict, setShowVerdict] = useState(false);
   const prevVisibleRef = useRef(visibleUpTo);
   const typingTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
@@ -102,11 +103,11 @@ export function ConstellationView({ agents, agentRoles: _agentRoles, messages, r
 
   const maxCount = useMemo(() => Math.max(1, ...connections.map(c => c.count)), [connections]);
 
-  // Layout constants
-  const SIZE = 400;
+  // Layout constants — compact to keep message area high
+  const SIZE = 320;
   const CENTER = SIZE / 2;
-  const RADIUS = 150;
-  const NODE_R = 20;
+  const RADIUS = 115;
+  const NODE_R = 18;
 
   const agentPositions = useMemo(() => {
     const positions: Record<string, { x: number; y: number }> = {};
@@ -153,13 +154,13 @@ export function ConstellationView({ agents, agentRoles: _agentRoles, messages, r
   };
 
   return (
-    <div className="relative flex flex-col items-center min-h-[65vh]">
+    <div className="relative flex flex-col items-center min-h-[55vh] pb-16">
 
       {/* ── The Constellation ── */}
-      <div className="w-full flex justify-center pt-6 pb-4">
+      <div className="w-full flex justify-center pt-2 pb-2">
         <svg
           viewBox={`0 0 ${SIZE} ${SIZE}`}
-          className="w-full max-w-[360px] sm:max-w-[400px]"
+          className="w-full max-w-[280px] sm:max-w-[310px]"
           style={{ overflow: "visible" }}
         >
           <defs>
@@ -332,7 +333,7 @@ export function ConstellationView({ agents, agentRoles: _agentRoles, messages, r
       <div className="w-full max-w-md mx-auto h-px bg-gradient-to-r from-transparent via-slate-200/50 dark:via-slate-700/30 to-transparent" />
 
       {/* ── The Scene — message content ── */}
-      <div className="flex-1 flex flex-col items-center justify-center w-full max-w-2xl mx-auto px-6 sm:px-12 py-10 sm:py-14">
+      <div className="flex-1 flex flex-col items-center justify-center w-full max-w-2xl mx-auto px-6 sm:px-12 py-4 sm:py-6">
 
         {/* Pre-play */}
         {visibleUpTo < 0 && !isTyping && (

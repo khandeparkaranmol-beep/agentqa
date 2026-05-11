@@ -22,7 +22,8 @@ interface Props {
  */
 export function SpotlightView({ agents, agentRoles: _agentRoles, messages, results, visibleUpTo, speed = 1 }: Props) {
   const [isTyping, setIsTyping] = useState(false);
-  const [displayedIdx, setDisplayedIdx] = useState(-1);
+  // Mount mid-playback: show content up to current turn immediately
+  const [displayedIdx, setDisplayedIdx] = useState(visibleUpTo);
   const [showVerdict, setShowVerdict] = useState(false);
   const prevVisibleRef = useRef(visibleUpTo);
   const typingTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);

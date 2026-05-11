@@ -12,7 +12,11 @@ export function ReplayControls({ replay, totalTurns }: Props) {
   const progress = totalTurns > 1 ? Math.max(0, (visibleUpTo + 1) / totalTurns) * 100 : 0;
 
   return (
-    <div className="flex items-center gap-3 px-4 py-2.5 bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl rounded-full shadow-lg shadow-black/[0.08] dark:shadow-black/30 border border-slate-200/50 dark:border-slate-700/30">
+    <div className={`flex items-center gap-3 px-4 py-2.5 bg-white/80 dark:bg-slate-900/80 backdrop-blur-xl rounded-full shadow-lg shadow-black/[0.08] dark:shadow-black/30 border transition-all duration-300 ${
+      isPlaying
+        ? "border-indigo-300/50 dark:border-indigo-500/20 shadow-indigo-500/[0.06]"
+        : "border-slate-200/50 dark:border-slate-700/30"
+    }`}>
       {/* Transport buttons */}
       <div className="flex items-center gap-0.5">
         <Btn onClick={replay.jumpToStart} disabled={atStart} title="Jump to start (Home)">

@@ -34,6 +34,7 @@ export function useReplay(totalTurns: number): ReplayState {
 
   const play = useCallback(() => {
     setIsPlaying(true);
+    // If at end, reset to beginning; otherwise keep position
     setVisibleUpTo((prev) => {
       if (prev >= totalTurns - 1) return -1;
       return prev;
@@ -45,9 +46,8 @@ export function useReplay(totalTurns: number): ReplayState {
       clearTimer();
       return;
     }
-    // Base: 2200ms at 1x — typing (800ms) + entrance (800ms) + reading pause (600ms)
-    const interval = Math.max(400, 2200 / speed);
-    timerRef.current = setInterval(() => {
+    // Immediately advance on first tick — no dead wait
+    const advance = () => {
       setVisibleUpTo((prev) => {
         const next = prev + 1;
         if (next >= totalTurns) {
@@ -56,7 +56,13 @@ export function useReplay(totalTurns: number): ReplayState {
         }
         return next;
       });
-    }, interval);
+    };
+    // Fire the first advance immediately
+    advance();
+    // Then continue on interval
+    // Base: 2200ms at 1x — typing (800ms) + entrance (800ms) + reading pause (600ms)
+    const interval = Math.max(400, 2200 / speed);
+    timerRef.current = setInterval(advance, interval);
     return clearTimer;
   }, [isPlaying, speed, totalTurns, clearTimer]);
 
