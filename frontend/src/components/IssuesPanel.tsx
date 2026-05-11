@@ -1,6 +1,6 @@
 import { useMemo } from "react";
 import type { MessageEvent } from "../types";
-import { getPropertyMeta, getFaultLabel, AGENT_COLORS } from "../labels";
+import { getPropertyMeta, AGENT_COLORS } from "../labels";
 
 interface Props {
   messages: MessageEvent[];
@@ -10,7 +10,7 @@ interface Props {
 
 interface Issue {
   turn: number;
-  type: "violation" | "fault";
+  type: "violation";
   label: string;
   detail: string;
   color: string;
@@ -38,17 +38,7 @@ export function IssuesPanel({ messages, agents, visibleUpTo }: Props) {
           });
         }
       }
-      if (msg.hasFault) {
-        const faultInfo = getFaultLabel(msg.faultType);
-        result.push({
-          turn: msg.turn,
-          type: "fault",
-          label: faultInfo.badgeLabel,
-          detail: `${faultInfo.label} — ${msg.sender} → ${msg.receiver}`,
-          color,
-          agentName: msg.sender,
-        });
-      }
+      // Faults are intentional test inputs, not failures — omit from issues
     }
     return result;
   }, [messages, agents, visibleUpTo]);
@@ -81,9 +71,7 @@ export function IssuesPanel({ messages, agents, visibleUpTo }: Props) {
               key={`${issue.turn}-${issue.type}-${i}`}
               className="rounded-xl px-3 py-2.5 backdrop-blur-sm spotlight-scene-enter"
               style={{
-                background: issue.type === "violation"
-                  ? "rgba(239,68,68,0.06)"
-                  : "rgba(249,115,22,0.06)",
+                background: "rgba(239,68,68,0.06)",
                 animationDelay: `${i * 80}ms`,
               }}
             >
@@ -99,10 +87,8 @@ export function IssuesPanel({ messages, agents, visibleUpTo }: Props) {
                 <span
                   className="text-[10px] font-semibold px-1.5 py-0.5 rounded-md"
                   style={{
-                    color: issue.type === "violation" ? "#ef4444" : "#f97316",
-                    background: issue.type === "violation"
-                      ? "rgba(239,68,68,0.1)"
-                      : "rgba(249,115,22,0.1)",
+                    color: "#ef4444",
+                    background: "rgba(239,68,68,0.1)",
                   }}
                 >
                   {issue.label}
