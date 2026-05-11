@@ -79,6 +79,22 @@ export function getAgents(events: TraceEvent[]): string[] {
   return Array.from(agents);
 }
 
+/** Returns a role label for each agent. Uses explicit roles from TraceData if available, otherwise infers from agent names. */
+export function getAgentRoles(agents: string[], explicitRoles?: Record<string, string>): Record<string, string> {
+  const roles: Record<string, string> = {};
+  for (const name of agents) {
+    if (explicitRoles?.[name]) {
+      roles[name] = explicitRoles[name];
+    } else {
+      // Infer a readable role from the agent name
+      roles[name] = name
+        .replace(/[-_]/g, " ")
+        .replace(/\b\w/g, c => c.toUpperCase());
+    }
+  }
+  return roles;
+}
+
 // ── Sample data for `npm run dev` ─────────────────────────────────────────────
 // Rich scenario: 5 agents, 20 turns, multiple faults, violations, milestones, state changes
 
@@ -91,6 +107,13 @@ const SAMPLE_DATA: import("./types").TraceData = {
   title: "procurement_negotiation — Run 3 / 5",
   topology: "mesh",
   agentqa_version: "0.5.0",
+  agent_roles: {
+    coordinator: "Orchestrates the procurement workflow",
+    analyst: "Researches market data and suppliers",
+    buyer: "Negotiates pricing with sellers",
+    seller: "Represents the supplier side",
+    auditor: "Monitors compliance and flags issues",
+  },
   results: [
     { property_name: "no_information_leak", passed: true, details: "No private data (budget, floor_price) leaked across agent boundaries." },
     { property_name: "ensures_information_flow", passed: true, details: "Required data flows: spec→analyst, analyst→buyer, analyst→seller all observed." },

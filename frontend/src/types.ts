@@ -33,6 +33,8 @@ export interface TraceData {
   results: PropertyResult[];
   topology?: string;
   agentqa_version?: string;
+  /** Optional agent metadata: { "alice": "Procurement negotiator", ... } */
+  agent_roles?: Record<string, string>;
   // diff mode
   trace_b?: TraceEvent[];
   results_b?: PropertyResult[];

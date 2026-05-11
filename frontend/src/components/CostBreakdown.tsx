@@ -1,19 +1,13 @@
-import { useMemo, useState } from "react";
+import { useMemo } from "react";
 import type { MessageEvent } from "../types";
-import { InfoTip } from "./InfoTip";
+import { AGENT_COLORS } from "../labels";
 
 interface Props {
   messages: MessageEvent[];
   agents: string[];
 }
 
-const AGENT_COLORS: string[] = [
-  "#6366f1", "#10b981", "#f59e0b", "#ef4444", "#8b5cf6", "#06b6d4", "#ec4899",
-];
-
 export function CostBreakdown({ messages, agents }: Props) {
-  const [hoveredAgent, setHoveredAgent] = useState<string | null>(null);
-
   const stats = useMemo(() => {
     const perAgent: Record<string, { input: number; output: number; cost: number; turns: number }> = {};
     for (const msg of messages) {
@@ -34,31 +28,18 @@ export function CostBreakdown({ messages, agents }: Props) {
   const maxTokens = Math.max(...Object.values(stats.perAgent).map((v) => v.input + v.output));
 
   return (
-    <div className="rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 shadow-sm dark:shadow-slate-900/50 overflow-hidden">
-      <div className="px-5 py-3 border-b border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 flex items-center justify-between">
-        <div className="flex items-center gap-1.5">
-          <h2 className="text-sm font-semibold text-slate-700 dark:text-slate-300">Token Usage</h2>
-          <InfoTip text="How many LLM tokens each agent used. Lighter bar = input tokens (prompt), darker bar = output tokens (response). Cost is estimated from token counts." />
-        </div>
-        <div className="flex items-center gap-3 text-xs text-slate-500 dark:text-slate-400 flex-shrink-0">
+    <div className="rounded-2xl border border-slate-200/30 dark:border-slate-700/20 bg-white/50 dark:bg-slate-800/30 backdrop-blur-xl overflow-hidden">
+      {/* Header — minimal */}
+      <div className="px-5 pt-4 pb-2 flex items-center justify-between">
+        <span className="text-[10px] uppercase tracking-[0.15em] text-slate-400 dark:text-slate-500 font-medium">Token Usage</span>
+        <div className="flex items-center gap-3 text-[10px] text-slate-300 dark:text-slate-600 tabular-nums">
           <span>{stats.totalTokens.toLocaleString()} total</span>
           {stats.totalCost > 0 && <span>${stats.totalCost.toFixed(4)}</span>}
         </div>
       </div>
-      {/* Total summary */}
-      <div className="px-5 py-2 border-b border-slate-100 dark:border-slate-700 bg-slate-50/50 dark:bg-slate-800/50">
-        <div className="flex items-center gap-4">
-          <span className="text-base font-semibold text-slate-800 dark:text-slate-200">
-            {stats.totalTokens.toLocaleString()} tokens
-          </span>
-          {stats.totalCost > 0 && (
-            <span className="text-base font-semibold text-slate-600 dark:text-slate-400">
-              ${stats.totalCost.toFixed(4)}
-            </span>
-          )}
-        </div>
-      </div>
-      <div className="px-5 py-4 space-y-3">
+
+      {/* Agent bars */}
+      <div className="px-5 pt-1 pb-4 space-y-3">
         {agents
           .filter((a) => stats.perAgent[a])
           .map((agent, i) => {
@@ -66,80 +47,56 @@ export function CostBreakdown({ messages, agents }: Props) {
             const total = s.input + s.output;
             const pct = maxTokens > 0 ? (total / maxTokens) * 100 : 0;
             const inputPct = total > 0 ? (s.input / total) * 100 : 0;
-            const outputPct = total > 0 ? (s.output / total) * 100 : 0;
-            const tokenSharePct = stats.totalTokens > 0 ? (total / stats.totalTokens) * 100 : 0;
             const color = AGENT_COLORS[i % AGENT_COLORS.length];
 
             return (
-              <div
-                key={agent}
-                className="space-y-1 relative"
-                onMouseEnter={() => setHoveredAgent(agent)}
-                onMouseLeave={() => setHoveredAgent(null)}
-              >
+              <div key={agent} className="space-y-1.5 group">
                 <div className="flex items-center justify-between">
                   <div className="flex items-center gap-2">
                     <span
-                      className="w-2.5 h-2.5 rounded-full flex-shrink-0"
+                      className="w-2 h-2 rounded-full flex-shrink-0"
                       style={{ backgroundColor: color }}
                     />
-                    <span className="text-sm font-medium text-slate-700 dark:text-slate-300">{agent}</span>
+                    <span className="text-xs font-medium text-slate-600 dark:text-slate-300">{agent}</span>
                   </div>
-                  <div className="flex items-center gap-3 text-xs text-slate-500 dark:text-slate-400">
-                    <span>
-                      <span className="font-medium text-slate-700 dark:text-slate-300">{s.input.toLocaleString()}</span> in
+                  <div className="flex items-center gap-2.5 text-[10px] tabular-nums">
+                    <span className="text-slate-400 dark:text-slate-500">
+                      <span className="text-slate-600 dark:text-slate-300 font-medium">{s.input.toLocaleString()}</span> in
                     </span>
-                    <span>
-                      <span className="font-medium text-slate-700 dark:text-slate-300">{s.output.toLocaleString()}</span> out
+                    <span className="text-slate-400 dark:text-slate-500">
+                      <span className="text-slate-600 dark:text-slate-300 font-medium">{s.output.toLocaleString()}</span> out
                     </span>
                     {s.cost > 0 && (
-                      <span className="font-medium text-slate-700 dark:text-slate-300">${s.cost.toFixed(4)}</span>
+                      <span className="text-slate-500 dark:text-slate-400 font-medium">${s.cost.toFixed(4)}</span>
                     )}
-                    <span className="text-slate-400 dark:text-slate-500">{s.turns} turns</span>
                   </div>
                 </div>
-                <div className="h-2 bg-slate-100 dark:bg-slate-700 rounded-full overflow-hidden">
+                <div className="h-1.5 bg-slate-100/60 dark:bg-slate-700/30 rounded-full overflow-hidden">
                   <div
                     className="h-full rounded-full flex animate-bar"
                     style={{ width: `${pct}%` }}
                   >
                     <div
                       className="h-full rounded-l-full"
-                      style={{ width: `${inputPct}%`, background: `linear-gradient(90deg, ${color}99, ${color})`, opacity: 0.7 }}
+                      style={{ width: `${inputPct}%`, backgroundColor: color, opacity: 0.4 }}
                     />
                     <div
                       className="h-full rounded-r-full"
-                      style={{ width: `${100 - inputPct}%`, background: `linear-gradient(90deg, ${color}99, ${color})` }}
+                      style={{ width: `${100 - inputPct}%`, backgroundColor: color, opacity: 0.7 }}
                     />
                   </div>
                 </div>
-                {/* Hover tooltip card */}
-                {hoveredAgent === agent && (
-                  <div className="absolute right-0 top-full mt-1 z-10 bg-white dark:bg-slate-700 border border-slate-200 dark:border-slate-600 rounded-lg shadow-lg px-4 py-3 text-xs space-y-1 min-w-[200px] animate-fade-in">
-                    <div className="font-semibold text-slate-800 dark:text-slate-200 mb-1">{agent}</div>
-                    <div className="flex justify-between text-slate-600 dark:text-slate-300">
-                      <span>Input tokens</span>
-                      <span className="font-medium">{inputPct.toFixed(1)}%</span>
-                    </div>
-                    <div className="flex justify-between text-slate-600 dark:text-slate-300">
-                      <span>Output tokens</span>
-                      <span className="font-medium">{outputPct.toFixed(1)}%</span>
-                    </div>
-                    <div className="flex justify-between text-slate-600 dark:text-slate-300 border-t border-slate-100 dark:border-slate-600 pt-1 mt-1">
-                      <span>Share of total</span>
-                      <span className="font-medium">{tokenSharePct.toFixed(1)}%</span>
-                    </div>
-                  </div>
-                )}
               </div>
             );
           })}
-        <div className="flex items-center gap-4 pt-1 text-xs text-slate-400 dark:text-slate-500">
+
+        {/* Legend — barely there */}
+        <div className="flex items-center gap-3 pt-1 text-[9px] text-slate-300 dark:text-slate-600">
           <span className="flex items-center gap-1">
-            <span className="w-3 h-2 rounded-sm bg-indigo-300" /> input
+            <span className="w-2.5 h-1 rounded-sm bg-indigo-400/40" /> input
           </span>
           <span className="flex items-center gap-1">
-            <span className="w-3 h-2 rounded-sm bg-indigo-500" /> output
+            <span className="w-2.5 h-1 rounded-sm bg-indigo-400/70" /> output
           </span>
         </div>
       </div>

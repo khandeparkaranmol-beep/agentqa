@@ -7,6 +7,10 @@ dist/
 *.egg
 .eggs/
 
+# Python build artifacts under build/ (project docs in build/*.md stay tracked)
+build/*
+!build/*.md
+
 # Virtual environments
 .venv/
 venv/

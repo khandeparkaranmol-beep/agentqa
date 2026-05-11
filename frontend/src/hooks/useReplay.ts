@@ -15,9 +15,9 @@ export interface ReplayState {
 }
 
 export function useReplay(totalTurns: number): ReplayState {
-  const [visibleUpTo, setVisibleUpTo] = useState(totalTurns - 1);
+  const [visibleUpTo, setVisibleUpTo] = useState(-1);
   const [isPlaying, setIsPlaying] = useState(false);
-  const [speed, setSpeed] = useState(1);
+  const [speed, setSpeed] = useState(1 / 3);
   const timerRef = useRef<ReturnType<typeof setInterval> | null>(null);
 
   const clearTimer = useCallback(() => {
@@ -45,7 +45,8 @@ export function useReplay(totalTurns: number): ReplayState {
       clearTimer();
       return;
     }
-    const interval = Math.max(100, 800 / speed);
+    // Base: 2200ms at 1x — typing (800ms) + entrance (800ms) + reading pause (600ms)
+    const interval = Math.max(400, 2200 / speed);
     timerRef.current = setInterval(() => {
       setVisibleUpTo((prev) => {
         const next = prev + 1;

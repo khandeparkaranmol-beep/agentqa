@@ -1,0 +1,4 @@
+recursive-include src/agentqa/viewer *.html
+prune .claude
+prune frontend
+prune node_modules

@@ -8,6 +8,22 @@ version = "0.5.0"
 description = "Multi-agent interaction testing framework — catch deadlocks, leaks, and role violations before production"
 readme = "README.md"
 requires-python = ">=3.10"
+license = "MIT"
+authors = [
+    {name = "Anmol Khandeparkar"},
+]
+keywords = ["testing", "multi-agent", "ai", "llm", "agents", "simulation", "property-testing"]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Developers",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Topic :: Software Development :: Testing",
+    "Topic :: Scientific/Engineering :: Artificial Intelligence",
+]
 dependencies = [
     "pyyaml>=6.0",
     "click>=8.0",
@@ -29,6 +45,10 @@ agentqa = "agentqa.pytest_plugin"
 
 [tool.setuptools.packages.find]
 where = ["src"]
+exclude = [".claude*", "frontend*"]
+
+[tool.setuptools.package-data]
+agentqa = ["viewer/*.html"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

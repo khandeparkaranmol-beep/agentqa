@@ -2,10 +2,15 @@
 @tailwind components;
 @tailwind utilities;
 
+/* ─── Base typography ─── */
 body {
-  font-family: system-ui, -apple-system, sans-serif;
+  overflow-x: hidden;
+  font-family: system-ui, -apple-system, 'Segoe UI', sans-serif;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
 }
 
+/* ─── Line clamp utility ─── */
 .line-clamp-2 {
   display: -webkit-box;
   -webkit-line-clamp: 2;
@@ -13,56 +18,75 @@ body {
   overflow: hidden;
 }
 
-/* ─── Smooth page transitions ─── */
-* {
-  transition-property: background-color, border-color, color, fill, stroke, box-shadow;
-  transition-duration: 150ms;
+/* ─── Smooth dark mode transitions (scoped, not wildcard) ─── */
+body, header, main, div, button, span, input {
+  transition-property: background-color, border-color, color, box-shadow;
+  transition-duration: 200ms;
   transition-timing-function: cubic-bezier(0.4, 0, 0.2, 1);
 }
 
-/* ─── Animated gradient shimmer for stat card accents ─── */
+/* ─── Shimmer for stat cards ─── */
 @keyframes shimmer {
   0% { background-position: -200% 0; }
   100% { background-position: 200% 0; }
 }
 .stat-shimmer {
-  background: linear-gradient(90deg, transparent 0%, rgba(99, 102, 241, 0.08) 50%, transparent 100%);
+  background: linear-gradient(90deg, transparent 0%, rgba(99, 102, 241, 0.06) 50%, transparent 100%);
   background-size: 200% 100%;
   animation: shimmer 3s ease-in-out infinite;
 }
 
-/* ─── Fade-in animation for cards ─── */
+/* ─── Fade in + slide up ─── */
 @keyframes fadeInUp {
-  from { opacity: 0; transform: translateY(8px); }
+  from { opacity: 0; transform: translateY(10px); }
   to { opacity: 1; transform: translateY(0); }
 }
-.animate-fade-in { animation: fadeInUp 0.4s ease-out both; }
-.animate-fade-in-delay-1 { animation: fadeInUp 0.4s ease-out 0.1s both; }
-.animate-fade-in-delay-2 { animation: fadeInUp 0.4s ease-out 0.2s both; }
-.animate-fade-in-delay-3 { animation: fadeInUp 0.4s ease-out 0.3s both; }
+.animate-fade-in { animation: fadeInUp 0.6s var(--chat-ease) both; }
+.animate-fade-in-delay-1 { animation: fadeInUp 0.6s var(--chat-ease) 0.3s both; }
+.animate-fade-in-delay-2 { animation: fadeInUp 0.6s var(--chat-ease) 0.6s both; }
+.animate-fade-in-delay-3 { animation: fadeInUp 0.6s var(--chat-ease) 0.9s both; }
+.animate-fade-in-delay-4 { animation: fadeInUp 0.6s var(--chat-ease) 1.2s both; }
 
-/* ─── Pulse glow for the pass rate ring ─── */
+/* ─── Intro exit — graceful collapse ─── */
+.intro-exit {
+  animation: introCollapse 1s var(--chat-ease) forwards;
+  pointer-events: none;
+}
+@keyframes introCollapse {
+  0%   { opacity: 1; max-height: 800px; transform: scale(1); }
+  50%  { opacity: 0; max-height: 800px; transform: scale(0.98); }
+  100% { opacity: 0; max-height: 0; transform: scale(0.98); padding-top: 0; padding-bottom: 0; }
+}
+
+/* ─── Scale + fade for panels ─── */
+@keyframes scaleIn {
+  from { opacity: 0; transform: scale(0.97) translateY(4px); }
+  to { opacity: 1; transform: scale(1) translateY(0); }
+}
+.animate-scale-in { animation: scaleIn 0.3s cubic-bezier(0.22, 1, 0.36, 1) both; }
+
+/* ─── Pulse glow for pass rate ring ─── */
 @keyframes pulseGlow {
   0%, 100% { filter: drop-shadow(0 0 3px currentColor); }
   50% { filter: drop-shadow(0 0 8px currentColor); }
 }
 .glow-pulse { animation: pulseGlow 2s ease-in-out infinite; }
 
-/* ─── Animated progress bar fill ─── */
+/* ─── Bar chart fill ─── */
 @keyframes fillBar {
   from { width: 0%; }
 }
-.animate-bar { animation: fillBar 0.8s ease-out both; }
+.animate-bar { animation: fillBar 0.8s cubic-bezier(0.22, 1, 0.36, 1) both; }
 
-/* ─── Custom scrollbar (subtle) ─── */
-::-webkit-scrollbar { width: 6px; height: 6px; }
+/* ─── Custom scrollbar ─── */
+::-webkit-scrollbar { width: 5px; height: 5px; }
 ::-webkit-scrollbar-track { background: transparent; }
-::-webkit-scrollbar-thumb { background: #cbd5e1; border-radius: 3px; }
-::-webkit-scrollbar-thumb:hover { background: #94a3b8; }
-.dark ::-webkit-scrollbar-thumb { background: #475569; }
-.dark ::-webkit-scrollbar-thumb:hover { background: #64748b; }
+::-webkit-scrollbar-thumb { background: #d1d5db; border-radius: 10px; }
+::-webkit-scrollbar-thumb:hover { background: #9ca3af; }
+.dark ::-webkit-scrollbar-thumb { background: #4b5563; }
+.dark ::-webkit-scrollbar-thumb:hover { background: #6b7280; }
 
-/* ─── Konami code easter egg styling ─── */
+/* ─── Confetti easter egg ─── */
 @keyframes confetti {
   0% { transform: translateY(0) rotate(0deg); opacity: 1; }
   100% { transform: translateY(100vh) rotate(720deg); opacity: 0; }
@@ -78,9 +102,187 @@ body {
   z-index: 9999;
 }
 
-/* ─── Smooth expand/collapse for accordion sections ─── */
+/* ─── Accordion slide down ─── */
 @keyframes slideDown {
   from { opacity: 0; max-height: 0; }
-  to { opacity: 1; max-height: 500px; }
+  to { opacity: 1; max-height: 2000px; }
 }
-.animate-slide-down { animation: slideDown 0.3s ease-out both; overflow: hidden; }
+.animate-slide-down { animation: slideDown 0.35s cubic-bezier(0.22, 1, 0.36, 1) both; overflow: hidden; }
+
+/* ─── Chat view: cinematic entrance ─────────────────────────────────
+   Philosophy: ONE smooth parent motion carries everything upward.
+   Children only fade in — no competing transforms.
+   Everything uses the same slow, buttery ease.
+   ─────────────────────────────────────────────────────────────────── */
+
+/* Shared ease — Apple's "natural" deceleration */
+:root { --chat-ease: cubic-bezier(0.16, 1, 0.3, 1); }
+
+/* Typing indicator dots — slow breath, not bounce */
+.typing-dot {
+  display: inline-block;
+  width: 5px;
+  height: 5px;
+  border-radius: 50%;
+  animation: typingBreathe 1.8s ease-in-out infinite;
+}
+@keyframes typingBreathe {
+  0%, 80%, 100% { opacity: 0.15; transform: scale(0.85); }
+  40% { opacity: 0.6; transform: scale(1); }
+}
+
+/* Container: deliberate rise — slow enough to feel intentional */
+.chat-entrance {
+  animation: chatRise 1s var(--chat-ease) both;
+}
+@keyframes chatRise {
+  from { opacity: 0; transform: translateY(16px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* Avatar: scale in naturally within the parent's rise */
+.chat-avatar-pop {
+  animation: avatarFade 0.8s var(--chat-ease) both;
+}
+@keyframes avatarFade {
+  from { opacity: 0; transform: scale(0.8); }
+  to   { opacity: 1; transform: scale(1); }
+}
+
+/* Name: gentle fade, slightly delayed */
+.chat-name-slide {
+  animation: softFade 0.7s var(--chat-ease) 0.2s both;
+}
+
+/* Body: the content is the star — give it time to arrive */
+.chat-body-reveal {
+  animation: softFade 0.8s var(--chat-ease) 0.35s both;
+}
+
+/* Annotations: last to appear */
+.chat-annotation-reveal {
+  animation: softFade 0.6s var(--chat-ease) 0.6s both;
+}
+
+/* Shared: simple opacity fade — no transform, the parent handles motion */
+@keyframes softFade {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+/* Color bar: breath-like reveal */
+.chat-color-bar {
+  animation: colorBarGrow 0.9s var(--chat-ease) both;
+  transform-origin: top;
+}
+@keyframes colorBarGrow {
+  from { transform: scaleY(0); opacity: 0; }
+  to   { transform: scaleY(1); opacity: 0.35; }
+}
+
+/* Violation border — soft red wash that settles */
+.chat-violation-border {
+  border-left: 3px solid #ef4444;
+  animation: violationWash 2s ease-out both;
+}
+@keyframes violationWash {
+  0%   { background-color: rgba(239, 68, 68, 0.07); }
+  100% { background-color: transparent; }
+}
+.dark .chat-violation-border {
+  animation: violationWashDark 2s ease-out both;
+}
+@keyframes violationWashDark {
+  0%   { background-color: rgba(239, 68, 68, 0.09); }
+  100% { background-color: transparent; }
+}
+
+/* ─── Verdict reveal — the climax ─── */
+.verdict-glow-pass {
+  animation: verdictPulse 3s ease-out both;
+  --glow-color: rgba(16, 185, 129, 0.06);
+}
+.verdict-glow-fail {
+  animation: verdictPulse 3s ease-out both;
+  --glow-color: rgba(239, 68, 68, 0.06);
+}
+@keyframes verdictPulse {
+  0%   { box-shadow: 0 0 0 0 transparent; }
+  30%  { box-shadow: 0 0 60px 15px var(--glow-color); }
+  100% { box-shadow: 0 0 0 0 transparent; }
+}
+.verdict-checkmark-reveal {
+  animation: checkReveal 1.2s var(--chat-ease) 0.3s both;
+}
+@keyframes checkReveal {
+  from { opacity: 0; transform: scale(0.5); }
+  to   { opacity: 1; transform: scale(1); }
+}
+.verdict-failure-card {
+  animation: failureSlideIn 0.8s var(--chat-ease) both;
+}
+@keyframes failureSlideIn {
+  from { opacity: 0; transform: translateY(10px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* ─── Spotlight view: scene transitions ─────────────────────────────
+   Each scene is a clean cut — the new content enters with
+   a deliberate upward drift + fade. Like a film, not a scroll.
+   ─────────────────────────────────────────────────────────────────── */
+
+.spotlight-scene-enter {
+  animation: spotlightEnter 0.9s var(--chat-ease) both;
+}
+@keyframes spotlightEnter {
+  from { opacity: 0; transform: translateY(12px); }
+  to   { opacity: 1; transform: translateY(0); }
+}
+
+/* Content within the scene — slightly delayed, like dialogue appearing after the scene establishes */
+.spotlight-content-reveal {
+  animation: spotlightContentIn 1s var(--chat-ease) 0.25s both;
+}
+@keyframes spotlightContentIn {
+  from { opacity: 0; }
+  to   { opacity: 1; }
+}
+
+/* ─── Floating controls — cinema mode player bar ─────────────────
+   Recedes to near-invisible when idle. Brightens on hover.
+   Like Netflix controls — present but not competing.
+   ─────────────────────────────────────────────────────────────────── */
+.floating-controls {
+  opacity: 0.35;
+  transition: opacity 0.5s var(--chat-ease);
+}
+.floating-controls:hover {
+  opacity: 1;
+}
+
+/* ─── Constellation view: connection + node animations ────────────
+   Connections pulse like light traveling between stars.
+   The speaker's node breathes — a slow, radiant expansion.
+   ─────────────────────────────────────────────────────────────────── */
+
+.constellation-connection-pulse {
+  animation: connectionPulse 2s ease-in-out infinite;
+}
+@keyframes connectionPulse {
+  0%, 100% { opacity: 0.1; stroke-width: inherit; }
+  50% { opacity: 0.4; }
+}
+
+.constellation-node-breathe {
+  animation: nodeBreathe 3s ease-in-out infinite;
+}
+@keyframes nodeBreathe {
+  0%, 100% { opacity: 0.1; r: inherit; }
+  50% { opacity: 0.25; }
+}
+
+/* ─── Subtle text selection ─── */
+::selection {
+  background: rgba(99, 102, 241, 0.2);
+  color: inherit;
+}

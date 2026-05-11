@@ -1,6 +1,6 @@
 import { useState } from "react";
 import type { TraceEvent } from "../types";
-import { InfoTip } from "./InfoTip";
+import { AGENT_COLORS } from "../labels";
 
 interface Props {
   events: TraceEvent[];
@@ -26,59 +26,60 @@ export function StateTimeline({ events, agents, visibleUpTo }: Props) {
   }
 
   return (
-    <div className="rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 shadow-sm dark:shadow-slate-900/50 overflow-hidden">
-      <div className="px-5 py-3 border-b border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 flex items-center justify-between">
-        <div className="flex items-center gap-1.5">
-          <h2 className="text-sm font-semibold text-slate-700 dark:text-slate-300">Agent State</h2>
-          <InfoTip text="Each agent's internal memory and variables (e.g. offer price, counters). Click an agent row to see how their state changed at each turn." />
-        </div>
-        <span className="text-xs text-slate-400 dark:text-slate-500 flex-shrink-0">{stateEvents.length} changes</span>
+    <div className="rounded-2xl border border-slate-200/30 dark:border-slate-700/20 bg-white/50 dark:bg-slate-800/30 backdrop-blur-xl overflow-hidden">
+      {/* Header — minimal, no background bar */}
+      <div className="px-5 pt-4 pb-2 flex items-center justify-between">
+        <span className="text-[10px] uppercase tracking-[0.15em] text-slate-400 dark:text-slate-500 font-medium">Agent State</span>
+        <span className="text-[10px] text-slate-300 dark:text-slate-600 tabular-nums">{stateEvents.length} changes</span>
       </div>
-      <div className="divide-y divide-slate-100 dark:divide-slate-700">
+
+      {/* Agent rows */}
+      <div className="px-2 pb-2">
         {agents
           .filter((a) => byAgent.has(a))
-          .map((agent) => {
+          .map((agent, idx) => {
             const changes = byAgent.get(agent)!;
             const latest = changes[changes.length - 1];
             const isExpanded = expandedAgent === agent;
+            const color = AGENT_COLORS[idx % AGENT_COLORS.length];
 
             return (
               <div key={agent}>
                 <button
                   onClick={() => setExpandedAgent(isExpanded ? null : agent)}
-                  className="w-full px-5 py-3 flex items-center gap-3 hover:bg-slate-50 dark:hover:bg-slate-700 transition-colors text-left"
+                  className="w-full px-3 py-2.5 flex items-center gap-3 rounded-xl hover:bg-slate-50/50 dark:hover:bg-slate-700/20 transition-colors text-left group"
                 >
                   <svg
-                    width="10"
-                    height="10"
-                    viewBox="0 0 10 10"
-                    fill="currentColor"
-                    className={`text-slate-400 flex-shrink-0 transition-transform ${isExpanded ? "rotate-90" : ""}`}
+                    width="8" height="8" viewBox="0 0 8 8" fill="currentColor"
+                    className={`text-slate-300 dark:text-slate-600 flex-shrink-0 transition-transform duration-200 ${isExpanded ? "rotate-90" : ""}`}
                   >
-                    <path d="M3 1l5 4-5 4z" />
+                    <path d="M2 0.5l4.5 3.5-4.5 3.5z" />
                   </svg>
-                  <span className="text-sm font-medium text-slate-800 dark:text-slate-200">{agent}</span>
-                  <span className="text-xs text-slate-400 dark:text-slate-500 ml-auto">
-                    {changes.length} change{changes.length !== 1 ? "s" : ""}
-                    {" · "}last at T{latest.turn}
+                  <span
+                    className="w-2 h-2 rounded-full flex-shrink-0"
+                    style={{ backgroundColor: color }}
+                  />
+                  <span className="text-xs font-medium text-slate-700 dark:text-slate-300">{agent}</span>
+                  <span className="text-[10px] text-slate-300 dark:text-slate-600 ml-auto tabular-nums">
+                    {changes.length} {changes.length === 1 ? "change" : "changes"} · T{latest.turn}
                   </span>
                 </button>
                 {isExpanded && (
-                  <div className="px-5 pb-3 space-y-2">
+                  <div className="px-3 pb-2 ml-5 space-y-1.5 animate-slide-down">
                     {changes.map((change, i) => (
                       <div
                         key={i}
-                        className="rounded-lg border border-slate-100 dark:border-slate-600 bg-slate-50 dark:bg-slate-700 overflow-hidden"
+                        className="rounded-xl bg-slate-50/50 dark:bg-slate-700/20 border border-slate-200/20 dark:border-slate-700/20 overflow-hidden"
                       >
-                        <div className="px-3 py-1.5 bg-slate-100 dark:bg-slate-600 text-xs text-slate-500 dark:text-slate-400 font-medium flex items-center justify-between">
-                          <span className="font-mono">Turn {change.turn}</span>
+                        <div className="px-3 py-1.5 flex items-center justify-between">
+                          <span className="text-[10px] font-mono text-slate-400 dark:text-slate-500">T{change.turn}</span>
                           {typeof change.data.field === "string" && (
-                            <span className="text-indigo-600 dark:text-indigo-400 font-mono">
+                            <span className="text-[10px] font-mono text-indigo-500/70 dark:text-indigo-400/60">
                               {change.data.field}
                             </span>
                           )}
                         </div>
-                        <pre className="px-3 py-2 text-xs text-slate-700 dark:text-slate-300 overflow-x-auto font-mono leading-relaxed">
+                        <pre className="px-3 pb-2 text-[10px] text-slate-500 dark:text-slate-400 overflow-x-auto font-mono leading-relaxed">
                           {formatStateData(change.data)}
                         </pre>
                       </div>

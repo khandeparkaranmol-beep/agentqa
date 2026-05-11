@@ -21,6 +21,8 @@ def main() -> None:
 @click.option("--agents", "agents_file", default=None, type=click.Path(), help="Python file exporting an 'agents' dict. Defaults to agents.py in the scenario directory.")
 @click.option("--threshold", default=1.0, type=float, show_default=True, help="Minimum pass rate (0-1) for a property to be considered passing.")
 @click.option("--thorough", is_flag=True, help="Shorthand for --runs 20.")
+@click.option("--save-traces", is_flag=True, help="Save JSONL traces to .agentqa/traces/.")
+@click.option("--view", "open_viewer", is_flag=True, help="Open an interactive HTML viewer for the first trace after the run.")
 @click.option("--verbose", is_flag=True, help="Enable debug output.")
 def run(
     path: str,
@@ -28,6 +30,8 @@ def run(
     agents_file: str | None,
     threshold: float,
     thorough: bool,
+    save_traces: bool,
+    open_viewer: bool,
     verbose: bool,
 ) -> None:
     """Run scenarios from PATH (file or directory)."""
@@ -73,6 +77,27 @@ def run(
 
         for i, trace in enumerate(traces):
             print_trace(trace, scenario.name, i + 1)
+
+        # Save traces to disk when requested (or when --view needs them).
+        saved_paths: list[Path] = []
+        if save_traces or open_viewer:
+            trace_dir = Path(".agentqa") / "traces"
+            trace_dir.mkdir(parents=True, exist_ok=True)
+            for i, trace in enumerate(traces):
+                dest = trace_dir / f"{scenario.name}_run_{i + 1}.jsonl"
+                trace.to_jsonl(dest)
+                saved_paths.append(dest)
+            click.echo(f"  Saved {len(saved_paths)} trace(s) → {trace_dir}/")
+
+        # Open the interactive HTML viewer for the first trace.
+        if open_viewer and saved_paths:
+            import webbrowser
+            from agentqa.export import export_html
+
+            html_path = saved_paths[0].with_suffix(".html")
+            export_html(traces[0], html_path, title=scenario.name)
+            click.echo(f"  Viewer → {html_path}")
+            webbrowser.open(html_path.resolve().as_uri())
 
         summary = engine.summarize(traces)
         failed = print_summary(summary, threshold=threshold)

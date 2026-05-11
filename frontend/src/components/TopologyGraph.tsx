@@ -1,16 +1,12 @@
 import { useMemo } from "react";
 import type { MessageEvent } from "../types";
-import { InfoTip } from "./InfoTip";
+import { AGENT_COLORS } from "../labels";
 
 interface Props {
   messages: MessageEvent[];
   agents: string[];
   topology?: string;
 }
-
-const AGENT_COLORS: string[] = [
-  "#6366f1", "#10b981", "#f59e0b", "#ef4444", "#8b5cf6", "#06b6d4", "#ec4899",
-];
 
 interface Edge {
   from: string;
@@ -36,11 +32,11 @@ export function TopologyGraph({ messages, agents, topology }: Props) {
 
   if (agents.length === 0) return null;
 
-  const size = 240;
+  const size = 260;
   const cx = size / 2;
   const cy = size / 2;
-  const radius = size / 2 - 40;
-  const nodeRadius = 18;
+  const radius = size / 2 - 44;
+  const nodeR = 14;
 
   const positions = new Map<string, { x: number; y: number }>();
   agents.forEach((agent, i) => {
@@ -54,21 +50,29 @@ export function TopologyGraph({ messages, agents, topology }: Props) {
   const maxCount = Math.max(1, ...edges.map((e) => e.count));
 
   return (
-    <div className="rounded-xl border border-slate-200 dark:border-slate-700 bg-white dark:bg-slate-800 shadow-sm dark:shadow-slate-900/50 overflow-hidden">
-      <div className="px-5 py-3 border-b border-slate-200 dark:border-slate-700 bg-slate-50 dark:bg-slate-800 flex items-center justify-between">
-        <div className="flex items-center gap-1.5">
-          <h2 className="text-sm font-semibold text-slate-700 dark:text-slate-300">Communication Graph</h2>
-          <InfoTip text="Shows who talked to whom and how often. Thicker arrows = more messages. Numbers on edges show message count. Topology label (star/chain/tree/mesh) is auto-detected from the communication pattern." />
-        </div>
+    <div className="rounded-2xl border border-slate-200/30 dark:border-slate-700/20 bg-white/50 dark:bg-slate-800/30 backdrop-blur-xl overflow-hidden">
+      {/* Header — minimal */}
+      <div className="px-5 pt-4 pb-1 flex items-center justify-between">
+        <span className="text-[10px] uppercase tracking-[0.15em] text-slate-400 dark:text-slate-500 font-medium">Communication Graph</span>
         {topology && (
-          <span className="text-xs text-slate-500 dark:text-slate-400 flex-shrink-0">
-            Topology: <span className="font-medium text-slate-700 dark:text-slate-300">{topology}</span>
+          <span className="text-[10px] text-slate-300 dark:text-slate-600">
+            {topology}
           </span>
         )}
       </div>
-      <div className="flex items-center justify-center py-4">
+
+      <div className="flex items-center justify-center py-3 pb-5">
         <svg width={size} height={size} viewBox={`0 0 ${size} ${size}`}>
-          {/* Edges */}
+          <defs>
+            <marker id="topo-arrow" markerWidth="5" markerHeight="5" refX="2.5" refY="2.5" orient="auto">
+              <path d="M0,0.5 L4.5,2.5 L0,4.5 Z" fill="currentColor" opacity="0.4" />
+            </marker>
+          </defs>
+
+          {/* Orbital ring — subtle reference */}
+          <circle cx={cx} cy={cy} r={radius} fill="none" stroke="currentColor" strokeWidth="0.5" opacity="0.06" />
+
+          {/* Edges — perpendicular bow curves */}
           {edges.map((edge) => {
             const from = positions.get(edge.from);
             const to = positions.get(edge.to);
@@ -76,44 +80,38 @@ export function TopologyGraph({ messages, agents, topology }: Props) {
 
             const dx = to.x - from.x;
             const dy = to.y - from.y;
-            const len = Math.sqrt(dx * dx + dy * dy);
-            const nx = dx / len;
-            const ny = dy / len;
+            const dist = Math.sqrt(dx * dx + dy * dy);
+            const nx = dx / dist;
+            const ny = dy / dist;
 
-            const startX = from.x + nx * nodeRadius;
-            const startY = from.y + ny * nodeRadius;
-            const endX = to.x - nx * (nodeRadius + 6);
-            const endY = to.y - ny * (nodeRadius + 6);
+            const startX = from.x + nx * (nodeR + 2);
+            const startY = from.y + ny * (nodeR + 2);
+            const endX = to.x - nx * (nodeR + 5);
+            const endY = to.y - ny * (nodeR + 5);
 
-            const strokeWidth = 1 + (edge.count / maxCount) * 2.5;
-            const opacity = 0.3 + (edge.count / maxCount) * 0.5;
+            // Perpendicular bow
+            const mx = (startX + endX) / 2;
+            const my = (startY + endY) / 2;
+            const bow = dist * 0.12;
+            const perpX = -ny * bow;
+            const perpY = nx * bow;
 
-            const midX = (startX + endX) / 2;
-            const midY = (startY + endY) / 2;
-            const perpX = -ny * 8;
-            const perpY = nx * 8;
+            const strokeWidth = 0.75 + (edge.count / maxCount) * 1.25;
+            const opacity = 0.15 + (edge.count / maxCount) * 0.35;
+
+            const fromIdx = agents.indexOf(edge.from);
+            const color = AGENT_COLORS[fromIdx % AGENT_COLORS.length];
 
             return (
               <g key={`${edge.from}→${edge.to}`}>
                 <path
-                  d={`M ${startX} ${startY} Q ${midX + perpX} ${midY + perpY} ${endX} ${endY}`}
+                  d={`M ${startX} ${startY} Q ${mx + perpX} ${my + perpY} ${endX} ${endY}`}
                   fill="none"
-                  stroke="#94a3b8"
+                  stroke={color}
                   strokeWidth={strokeWidth}
                   opacity={opacity}
                   markerEnd="url(#topo-arrow)"
                 />
-                <text
-                  x={midX + perpX * 1.8}
-                  y={midY + perpY * 1.8}
-                  textAnchor="middle"
-                  dominantBaseline="middle"
-                  fontSize={9}
-                  fill="#94a3b8"
-                  fontFamily="system-ui, sans-serif"
-                >
-                  {edge.count}
-                </text>
               </g>
             );
           })}
@@ -124,23 +122,21 @@ export function TopologyGraph({ messages, agents, topology }: Props) {
             const color = AGENT_COLORS[i % AGENT_COLORS.length];
             return (
               <g key={agent}>
-                <circle
-                  cx={pos.x}
-                  cy={pos.y}
-                  r={nodeRadius}
-                  fill={color}
-                  opacity={0.15}
-                  stroke={color}
-                  strokeWidth={2}
-                />
-                <circle cx={pos.x} cy={pos.y} r={6} fill={color} />
+                {/* Glow */}
+                <circle cx={pos.x} cy={pos.y} r={nodeR + 4} fill={color} opacity={0.06} />
+                {/* Ring */}
+                <circle cx={pos.x} cy={pos.y} r={nodeR} fill="none" stroke={color} strokeWidth={1} opacity={0.25} />
+                {/* Core */}
+                <circle cx={pos.x} cy={pos.y} r={4} fill={color} opacity={0.7} />
+                {/* Label */}
                 <text
                   x={pos.x}
-                  y={pos.y + nodeRadius + 14}
+                  y={pos.y + nodeR + 12}
                   textAnchor="middle"
-                  fontSize={11}
-                  fontWeight={600}
-                  fill={color}
+                  fontSize={9}
+                  fontWeight={500}
+                  fill="currentColor"
+                  opacity={0.4}
                   fontFamily="system-ui, sans-serif"
                 >
                   {agent}
@@ -148,12 +144,6 @@ export function TopologyGraph({ messages, agents, topology }: Props) {
               </g>
             );
           })}
-
-          <defs>
-            <marker id="topo-arrow" markerWidth="6" markerHeight="6" refX="3" refY="3" orient="auto">
-              <path d="M0,0 L6,3 L0,6 Z" fill="#94a3b8" />
-            </marker>
-          </defs>
         </svg>
       </div>
     </div>
