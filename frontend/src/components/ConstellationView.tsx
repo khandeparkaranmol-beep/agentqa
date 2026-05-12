@@ -1,6 +1,6 @@
 import { useState, useEffect, useRef, useMemo } from "react";
 import type { MessageEvent, PropertyResult } from "../types";
-import { getPropertyMeta, getFaultLabel, agentColor as getAgentColor, AGENT_COLORS } from "../labels";
+import { getFaultLabel, getPropertyMeta, agentColor as getAgentColor, AGENT_COLORS } from "../labels";
 
 interface Props {
   agents: string[];
@@ -29,11 +29,10 @@ interface ConnectionData {
  * Below the constellation, the current message appears.
  * This is a map of relationships, not a transcript.
  */
-export function ConstellationView({ agents, agentRoles: _agentRoles, messages, results, visibleUpTo, speed = 1 }: Props) {
+export function ConstellationView({ agents, agentRoles: _agentRoles, messages, results: _results, visibleUpTo, speed = 1 }: Props) {
   const [isTyping, setIsTyping] = useState(false);
   // Mount mid-playback: show content up to current turn immediately
   const [displayedIdx, setDisplayedIdx] = useState(visibleUpTo);
-  const [showVerdict, setShowVerdict] = useState(false);
   const prevVisibleRef = useRef(visibleUpTo);
   const typingTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
@@ -43,7 +42,7 @@ export function ConstellationView({ agents, agentRoles: _agentRoles, messages, r
   useEffect(() => {
     const prev = prevVisibleRef.current;
     if (visibleUpTo > prev && visibleUpTo >= 0) {
-      setShowVerdict(false);
+
       setIsTyping(true);
       if (typingTimerRef.current) clearTimeout(typingTimerRef.current);
       const duration = Math.max(150, 800 / speed);
@@ -52,11 +51,11 @@ export function ConstellationView({ agents, agentRoles: _agentRoles, messages, r
         setDisplayedIdx(visibleUpTo);
       }, duration);
     } else if (visibleUpTo < prev) {
-      setShowVerdict(false);
+
       setIsTyping(false);
       setDisplayedIdx(visibleUpTo);
     } else if (visibleUpTo === -1 && prev !== -1) {
-      setShowVerdict(false);
+
       setIsTyping(false);
       setDisplayedIdx(-1);
     }
@@ -66,13 +65,7 @@ export function ConstellationView({ agents, agentRoles: _agentRoles, messages, r
     };
   }, [visibleUpTo, speed]);
 
-  // Verdict after last message
-  useEffect(() => {
-    if (displayedIdx === messages.length - 1 && !isTyping && results) {
-      const t = setTimeout(() => setShowVerdict(true), 2000);
-      return () => clearTimeout(t);
-    }
-  }, [displayedIdx, isTyping, messages.length, results]);
+  // No verdict in Constellation — the sidebar's Failed Checks panel handles this
 
   const currentMsg = displayedIdx >= 0 && displayedIdx < messages.length
     ? messages[displayedIdx]
@@ -103,11 +96,11 @@ export function ConstellationView({ agents, agentRoles: _agentRoles, messages, r
 
   const maxCount = useMemo(() => Math.max(1, ...connections.map(c => c.count)), [connections]);
 
-  // Layout constants — compact to keep message area high
-  const SIZE = 320;
+  // Layout constants
+  const SIZE = 380;
   const CENTER = SIZE / 2;
-  const RADIUS = 115;
-  const NODE_R = 18;
+  const RADIUS = 140;
+  const NODE_R = 20;
 
   const agentPositions = useMemo(() => {
     const positions: Record<string, { x: number; y: number }> = {};
@@ -160,7 +153,7 @@ export function ConstellationView({ agents, agentRoles: _agentRoles, messages, r
       <div className="w-full flex justify-center pt-2 pb-2">
         <svg
           viewBox={`0 0 ${SIZE} ${SIZE}`}
-          className="w-full max-w-[280px] sm:max-w-[310px]"
+          className="w-full max-w-[340px] sm:max-w-[380px]"
           style={{ overflow: "visible" }}
         >
           <defs>
@@ -354,7 +347,7 @@ export function ConstellationView({ agents, agentRoles: _agentRoles, messages, r
         )}
 
         {/* Current message */}
-        {!isTyping && currentMsg && !showVerdict && (
+        {!isTyping && currentMsg && (
           <div key={displayedIdx} className="text-center space-y-6 spotlight-scene-enter w-full">
 
             {currentMsg.hasFault && (
@@ -400,11 +393,10 @@ export function ConstellationView({ agents, agentRoles: _agentRoles, messages, r
           </div>
         )}
 
-        {showVerdict && results && <VerdictReveal results={results} messageCount={messages.length} />}
       </div>
 
       {/* Turn counter */}
-      {visibleUpTo >= 0 && !showVerdict && (
+      {visibleUpTo >= 0 && (
         <div className="pb-8">
           <span className="text-[11px] font-mono text-slate-300 dark:text-slate-600 tracking-widest">
             {visibleUpTo + 1} / {messages.length}
@@ -415,62 +407,3 @@ export function ConstellationView({ agents, agentRoles: _agentRoles, messages, r
   );
 }
 
-function VerdictReveal({ results, messageCount }: { results: PropertyResult[]; messageCount: number }) {
-  const failures = results.filter(r => !r.passed);
-  const passes = results.filter(r => r.passed);
-  const allPassed = failures.length === 0;
-
-  if (allPassed) {
-    return (
-      <div className="text-center space-y-6 spotlight-scene-enter">
-        <div className="verdict-glow-pass rounded-3xl py-12 px-8">
-          <div className="verdict-checkmark-reveal mb-6">
-            <svg width="56" height="56" viewBox="0 0 56 56" fill="none" className="mx-auto">
-              <circle cx="28" cy="28" r="26" stroke="#10b981" strokeWidth="1.5" opacity="0.25" />
-              <path d="M16 28l8 8 16-16" stroke="#10b981" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round" />
-            </svg>
-          </div>
-          <h2 className="text-2xl sm:text-3xl font-bold text-emerald-700 dark:text-emerald-400 tracking-tight">
-            All checks passed
-          </h2>
-          <p className="text-sm text-emerald-600/50 dark:text-emerald-400/40 font-light mt-2">
-            {passes.length} safety {passes.length === 1 ? "check" : "checks"} verified across {messageCount} messages
-          </p>
-        </div>
-      </div>
-    );
-  }
-
-  return (
-    <div className="text-center space-y-8 spotlight-scene-enter max-w-lg mx-auto">
-      <div className="verdict-glow-fail rounded-3xl py-12 px-8">
-        <h2 className="text-2xl sm:text-3xl font-bold text-red-700 dark:text-red-400 tracking-tight">
-          {failures.length} {failures.length === 1 ? "check" : "checks"} failed
-        </h2>
-        <p className="text-sm text-slate-400 dark:text-slate-500 font-light mt-3">
-          {passes.length} passed · {failures.length} failed
-        </p>
-      </div>
-      <div className="space-y-3 text-left">
-        {failures.map((f, i) => {
-          const meta = getPropertyMeta(f.property_name);
-          return (
-            <div
-              key={f.property_name}
-              className="rounded-2xl bg-red-50/30 dark:bg-red-500/[0.03] px-6 py-4 verdict-failure-card"
-              style={{ animationDelay: `${(i + 1) * 300}ms` }}
-            >
-              <p className="text-[13px] font-semibold text-red-700 dark:text-red-400">{meta.failedLabel}</p>
-              <p className="text-xs text-red-500/50 dark:text-red-400/40 mt-1.5 leading-relaxed">{f.details}</p>
-            </div>
-          );
-        })}
-      </div>
-      {passes.length > 0 && (
-        <p className="text-xs text-slate-400/60 dark:text-slate-500/60 font-light leading-relaxed">
-          Passed: {passes.map(p => getPropertyMeta(p.property_name).label).join(", ")}
-        </p>
-      )}
-    </div>
-  );
-}

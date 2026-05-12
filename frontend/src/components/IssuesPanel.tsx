@@ -50,7 +50,7 @@ export function IssuesPanel({ messages, agents, visibleUpTo }: Props) {
       {/* Header */}
       <div className="flex items-center gap-2 px-1">
         <span className="text-[10px] uppercase tracking-[0.15em] text-slate-400 dark:text-slate-500 font-medium">
-          Issues
+          Failed Checks
         </span>
         {issues.length > 0 && (
           <span className="text-[10px] font-bold tabular-nums px-1.5 py-0.5 rounded-full bg-red-500/10 text-red-500 dark:bg-red-400/10 dark:text-red-400">
@@ -62,7 +62,7 @@ export function IssuesPanel({ messages, agents, visibleUpTo }: Props) {
       {/* Issue cards */}
       {issues.length === 0 ? (
         <p className="text-[11px] text-slate-300 dark:text-slate-600 px-1 py-2 font-light">
-          No issues so far.
+          All checks passing.
         </p>
       ) : (
         <div className="space-y-1.5 max-h-[50vh] overflow-y-auto pr-1" style={{ scrollbarWidth: "thin" }}>
