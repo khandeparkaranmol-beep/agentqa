@@ -9,7 +9,6 @@ Publish this **entire folder** as the GitHub Pages root (`/docs` on `main`). Kee
 | **`index.html`** | **Landing only** — short pitch, links to the guide and viewer. Canonical URL for “share AgentQA on the web.” |
 | **`guide.html`** | **Full interactive user guide** — install, `agentqa init`, workflow, properties, faults, CLI, frameworks. |
 | **`viewer.html`** | **Production trace viewer** — same single-file React app as `agentqa view` / `export_html`, with built-in sample data when no trace is embedded. |
-| **`demo-viewer.html`** | **Optional static preview** — lightweight in-page recreation for marketing; links to `viewer.html` for the real shipped UI. |
 | **`.nojekyll`** | Tells GitHub Pages not to run Jekyll. |
 
 There is no `guide/index.html` in this layout: everything is **flat** under `docs/` so links stay simple.
