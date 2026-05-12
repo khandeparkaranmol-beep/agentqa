@@ -47,6 +47,18 @@ export function ScenarioHero({
     return props.reduce((sum, p) => sum + p.pass_rate, 0) / props.length;
   })();
 
+  // Average CI across all properties (if available)
+  const multiRunCI = (() => {
+    if (!runSummary) return null;
+    const props = Object.values(runSummary.properties);
+    if (props.length === 0) return null;
+    const hasCI = props.some(p => p.ci_lower !== undefined && p.ci_upper !== undefined);
+    if (!hasCI) return null;
+    const avgLower = props.reduce((sum, p) => sum + (p.ci_lower ?? 0), 0) / props.length;
+    const avgUpper = props.reduce((sum, p) => sum + (p.ci_upper ?? 1), 0) / props.length;
+    return { lower: avgLower, upper: avgUpper };
+  })();
+
   // Single-run pass rate (fallback when no multi-run data)
   const allPassed = checkCount > 0 && passedChecks === checkCount;
 
@@ -86,7 +98,13 @@ export function ScenarioHero({
                     ? "text-amber-500 dark:text-amber-400 font-semibold"
                     : "text-red-500 dark:text-red-400 font-semibold"
               }>
-                {Math.round(multiRunRate * 100)}% pass rate ({runSummary!.total_runs} runs)
+                {Math.round(multiRunRate * 100)}% pass rate
+                {multiRunCI && (
+                  <span className="font-normal text-slate-400 dark:text-slate-500 ml-1">
+                    [{Math.round(multiRunCI.lower * 100)}–{Math.round(multiRunCI.upper * 100)}%]
+                  </span>
+                )}
+                {" "}({runSummary!.total_runs} runs)
               </span>
             </>
           ) : checkCount > 0 ? (

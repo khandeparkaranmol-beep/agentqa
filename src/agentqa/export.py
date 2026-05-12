@@ -116,11 +116,11 @@ def export_html(
         data["run_summary"] = {
             "total_runs": run_summary.total_runs,
             "properties": {
-                name: {"passes": s.passes, "failures": s.failures, "pass_rate": s.pass_rate}
+                name: {"passes": s.passes, "failures": s.failures, "pass_rate": s.pass_rate, "ci_lower": s.ci_lower, "ci_upper": s.ci_upper}
                 for name, s in run_summary.property_results.items()
             },
             "milestones": {
-                name: {"passes": s.passes, "failures": s.failures, "pass_rate": s.pass_rate}
+                name: {"passes": s.passes, "failures": s.failures, "pass_rate": s.pass_rate, "ci_lower": s.ci_lower, "ci_upper": s.ci_upper}
                 for name, s in run_summary.milestone_results.items()
             } if run_summary.milestone_results else {},
         }
@@ -233,10 +233,14 @@ def dashboard_html(
                 bucket[prop_name] = {"passes": 0, "failures": 0, "pass_rate": 0.0}
             bucket[prop_name]["passes" if passed else "failures"] += 1
 
+        from agentqa.engine import wilson_interval
         for bucket in (props, milestones):
             for rec in bucket.values():
                 total = rec["passes"] + rec["failures"]
                 rec["pass_rate"] = rec["passes"] / total if total else 1.0
+                ci_lo, ci_hi = wilson_interval(rec["passes"], total)
+                rec["ci_lower"] = ci_lo
+                rec["ci_upper"] = ci_hi
 
         scenarios.append({
             "name": name,

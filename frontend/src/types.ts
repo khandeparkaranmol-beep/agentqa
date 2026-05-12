@@ -31,6 +31,8 @@ export interface PropertyStats {
   passes: number;
   failures: number;
   pass_rate: number;
+  ci_lower?: number;
+  ci_upper?: number;
 }
 
 /** Multi-run summary embedded alongside traces. */

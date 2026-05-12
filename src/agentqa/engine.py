@@ -262,10 +262,13 @@ class SimulationEngine:
                             failures += 1
                             failure_details.append(f"Run {i + 1}: FAILED — {result.details}")
             total = passes + failures
+            ci_lo, ci_hi = wilson_interval(passes, total)
             property_results[prop_name] = PropertyStats(
                 passes=passes,
                 failures=failures,
                 pass_rate=passes / total if total > 0 else 0.0,
+                ci_lower=ci_lo,
+                ci_upper=ci_hi,
                 failure_details=failure_details,
             )
 
@@ -294,10 +297,13 @@ class SimulationEngine:
                             failures += 1
                             failure_details.append(f"Run {i + 1}: {event.data['details']}")
             total = passes + failures
+            ci_lo, ci_hi = wilson_interval(passes, total)
             milestone_results[ms_name] = PropertyStats(
                 passes=passes,
                 failures=failures,
                 pass_rate=passes / total if total > 0 else 0.0,
+                ci_lower=ci_lo,
+                ci_upper=ci_hi,
                 failure_details=failure_details,
             )
 
@@ -317,12 +323,51 @@ class SimulationEngine:
 from pydantic import BaseModel  # noqa: E402 — kept at bottom to avoid polluting top-level imports
 
 
+def wilson_interval(passes: int, total: int, confidence: float = 0.95) -> tuple[float, float]:
+    """Wilson score confidence interval for a binomial proportion.
+
+    Returns (lower, upper) bounds. Handles edge cases:
+    - total == 0  → (0.0, 0.0)
+    - passes == 0 → lower bound is 0
+    - passes == total → upper bound is 1
+
+    Args:
+        passes: Number of successes.
+        total: Total number of trials.
+        confidence: Confidence level (default 0.95 for 95% CI).
+
+    Returns:
+        Tuple of (lower_bound, upper_bound), both in [0, 1].
+    """
+    if total == 0:
+        return (0.0, 0.0)
+
+    import math
+
+    # Z-score for confidence level (two-tailed)
+    # For 95% → 1.96, for 90% → 1.645, for 99% → 2.576
+    # Using inverse normal approximation
+    alpha = 1 - confidence
+    z = {0.10: 1.645, 0.05: 1.96, 0.01: 2.576}.get(alpha, 1.96)
+
+    p_hat = passes / total
+    denominator = 1 + z * z / total
+    centre = p_hat + z * z / (2 * total)
+    spread = z * math.sqrt((p_hat * (1 - p_hat) + z * z / (4 * total)) / total)
+
+    lower = max(0.0, (centre - spread) / denominator)
+    upper = min(1.0, (centre + spread) / denominator)
+    return (round(lower, 4), round(upper, 4))
+
+
 class PropertyStats(BaseModel):
     """Aggregate statistics for one property across all runs."""
 
     passes: int
     failures: int
     pass_rate: float
+    ci_lower: float = 0.0
+    ci_upper: float = 0.0
     failure_details: list[str]
 
 

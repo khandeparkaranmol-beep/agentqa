@@ -62,11 +62,19 @@ def print_summary(summary: "RunSummary", threshold: float = 1.0) -> bool:  # typ
 
         color = "green" if passing else ("yellow" if stats.pass_rate > 0 else "red")
         label = "✓" if passing else ("✗ FLAKY" if stats.pass_rate > 0 else "✗")
+        ci_str = f" CI [{stats.ci_lower * 100:.0f}%–{stats.ci_upper * 100:.0f}%]" if (stats.passes + stats.failures) > 1 else ""
         line = (
             f"{prop_name}: {stats.passes}/{stats.passes + stats.failures} passed "
-            f"({stats.pass_rate * 100:.1f}%) "
+            f"({stats.pass_rate * 100:.1f}%){ci_str} "
         )
         click.echo(click.style(line, fg=color) + click.style(label, fg=color))
+        # Suggest more runs if CI is too wide (spread > 40 percentage points)
+        ci_spread = stats.ci_upper - stats.ci_lower
+        if not passing and ci_spread > 0.4 and (stats.passes + stats.failures) < 20:
+            click.echo(click.style(
+                f"  ↳ Confidence interval is wide — run with --runs 20 for a tighter estimate",
+                fg="yellow",
+            ))
 
         for detail in stats.failure_details:
             click.echo(f"  {detail}")
@@ -78,8 +86,10 @@ def print_summary(summary: "RunSummary", threshold: float = 1.0) -> bool:  # typ
             label_short = ms_name.removeprefix("milestone:")
             color = "green" if stats.pass_rate >= threshold else "red"
             icon = "✓" if stats.pass_rate >= threshold else "✗"
+            total = stats.passes + stats.failures
+            ci_str = f" [{stats.ci_lower * 100:.0f}%–{stats.ci_upper * 100:.0f}%]" if total > 1 else ""
             click.echo(click.style(
-                f"  {icon} {label_short}: {stats.passes}/{stats.passes + stats.failures} runs reached",
+                f"  {icon} {label_short}: {stats.passes}/{total} runs reached ({stats.pass_rate * 100:.0f}%){ci_str}",
                 fg=color,
             ))
         click.echo()

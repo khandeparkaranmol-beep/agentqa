@@ -1,11 +1,12 @@
 import { useMemo } from "react";
-import type { MessageEvent } from "../types";
+import type { MessageEvent, RunSummary } from "../types";
 import { getPropertyMeta, AGENT_COLORS } from "../labels";
 
 interface Props {
   messages: MessageEvent[];
   agents: string[];
   visibleUpTo: number;
+  runSummary?: RunSummary;
 }
 
 interface Issue {
@@ -17,7 +18,7 @@ interface Issue {
   agentName: string;
 }
 
-export function IssuesPanel({ messages, agents, visibleUpTo }: Props) {
+export function IssuesPanel({ messages, agents, visibleUpTo, runSummary }: Props) {
   const issues = useMemo(() => {
     const result: Issue[] = [];
     for (let i = 0; i <= Math.min(visibleUpTo, messages.length - 1); i++) {
@@ -58,6 +59,62 @@ export function IssuesPanel({ messages, agents, visibleUpTo }: Props) {
           </span>
         )}
       </div>
+
+      {/* Per-property pass rates with CI */}
+      {runSummary && Object.keys(runSummary.properties).length > 0 && (
+        <div className="space-y-1 mb-3">
+          <span className="text-[10px] uppercase tracking-[0.15em] text-slate-400 dark:text-slate-500 font-medium px-1">
+            Pass Rates ({runSummary.total_runs} runs)
+          </span>
+          <div className="space-y-1">
+            {Object.entries(runSummary.properties).map(([name, stats]) => {
+              const meta = getPropertyMeta(name);
+              const hasCI = stats.ci_lower !== undefined && stats.ci_upper !== undefined;
+              const passed = stats.pass_rate >= 1.0;
+              const barColor = passed
+                ? "bg-emerald-500/70"
+                : stats.pass_rate >= 0.8
+                  ? "bg-amber-500/70"
+                  : "bg-red-500/70";
+              return (
+                <div key={name} className="rounded-lg px-2.5 py-1.5 bg-white/30 dark:bg-slate-800/20">
+                  <div className="flex items-center justify-between mb-1">
+                    <span className="text-[10px] font-medium text-slate-600 dark:text-slate-300 truncate mr-2">
+                      {meta.label}
+                    </span>
+                    <span className="text-[10px] font-mono text-slate-400 dark:text-slate-500 flex-shrink-0">
+                      {Math.round(stats.pass_rate * 100)}%
+                      {hasCI && (
+                        <span className="text-slate-300 dark:text-slate-600 ml-0.5">
+                          [{Math.round(stats.ci_lower! * 100)}–{Math.round(stats.ci_upper! * 100)}]
+                        </span>
+                      )}
+                    </span>
+                  </div>
+                  {/* CI bar visualization */}
+                  <div className="relative h-1.5 rounded-full bg-slate-100 dark:bg-slate-700/40 overflow-hidden">
+                    {/* Pass rate fill */}
+                    <div
+                      className={`absolute inset-y-0 left-0 rounded-full ${barColor}`}
+                      style={{ width: `${stats.pass_rate * 100}%` }}
+                    />
+                    {/* CI range overlay */}
+                    {hasCI && (
+                      <div
+                        className="absolute inset-y-0 rounded-full border border-slate-400/30 dark:border-slate-500/30"
+                        style={{
+                          left: `${stats.ci_lower! * 100}%`,
+                          width: `${(stats.ci_upper! - stats.ci_lower!) * 100}%`,
+                        }}
+                      />
+                    )}
+                  </div>
+                </div>
+              );
+            })}
+          </div>
+        </div>
+      )}
 
       {/* Issue cards */}
       {issues.length === 0 ? (

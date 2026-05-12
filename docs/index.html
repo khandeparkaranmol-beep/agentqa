@@ -345,7 +345,7 @@ html.dark .yaml-preview { border: 1px solid var(--slate-700); }
         <div class="step-number" style="background:var(--emerald)">2</div>
         <div class="step-content">
           <h3>Run with statistical confidence</h3>
-          <p>AgentQA runs your scenario <strong>N times</strong> (default 5) and reports pass rates, not a single pass/fail. One flaky pass tells you nothing — statistical confidence tells you everything.</p>
+          <p>AgentQA runs your scenario <strong>N times</strong> (default 5) and reports pass rates with <strong>Wilson score confidence intervals</strong> — not a single pass/fail. A result like <code>80% [36%–97%]</code> tells you both what happened and how much to trust it. Wide interval? Run more iterations.</p>
           <div class="cmd-block"><span class="comment"># Run 5 times (default) and open the trace viewer</span>
 <span class="prompt">$</span> <span class="cmd">agentqa run</span> <span class="string">scenario.yaml</span> <span class="flag">--view</span>
 
