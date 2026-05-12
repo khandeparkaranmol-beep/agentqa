@@ -308,23 +308,9 @@ html.dark .yaml-preview { border: 1px solid var(--slate-700); }
       <span class="prompt">$</span> pip install agentqa
     </div>
     <div class="animate-in delay-4" style="margin-top:20px">
-      <a href="#viewer-demo" class="nav-link" style="display:inline-flex;align-items:center;gap:6px;font-size:13px;color:var(--indigo);font-weight:500;text-decoration:none;padding:8px 18px;border-radius:10px;border:1px solid var(--indigo);transition:all 150ms;">
+      <a href="viewer.html" class="nav-link" style="display:inline-flex;align-items:center;gap:6px;font-size:13px;color:var(--indigo);font-weight:500;text-decoration:none;padding:8px 18px;border-radius:10px;border:1px solid var(--indigo);transition:all 150ms;">
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="5 3 19 12 5 21 5 3"/></svg>
-        Jump to trace viewer demo
-      </a>
-    </div>
-  </div>
-</section>
-
-<!-- ─── Trace viewer demo (opens viewer.html) ─── -->
-<section class="section viewer-demo-section" id="viewer-demo" aria-labelledby="viewer-demo-title">
-  <div class="container">
-    <div class="viewer-demo-card">
-      <h2 id="viewer-demo-title">Live trace viewer</h2>
-      <p>Same single-file React app as <code>agentqa view</code> and <code>--view</code>, with built-in sample data on GitHub Pages. Spotlight, Constellation, and Timeline; keyboard: <kbd>Space</kbd>, arrows, <kbd>Home</kbd> / <kbd>End</kbd>.</p>
-      <a class="demo-link" href="viewer.html">
-        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="5 3 19 12 5 21 5 3"/></svg>
-        Open trace viewer demo
+        See the live trace viewer demo
       </a>
     </div>
   </div>
@@ -376,7 +362,7 @@ html.dark .yaml-preview { border: 1px solid var(--slate-700); }
         <div class="step-number" style="background:var(--purple)">3</div>
         <div class="step-content">
           <h3>Explore in the trace viewer</h3>
-          <p>The <code>--view</code> flag opens an interactive HTML viewer in your browser. Three viewing modes — Spotlight (cinematic replay), Constellation (agent graph), and Timeline (swimlane) — let you inspect every message, fault, and property check. <a href="#viewer-demo" style="color:var(--indigo);font-weight:500;text-decoration:underline;text-underline-offset:2px;">Trace viewer demo link →</a></p>
+          <p>The <code>--view</code> flag opens an interactive HTML viewer in your browser. Three viewing modes — Spotlight (cinematic replay), Constellation (agent graph), and Timeline (swimlane) — let you inspect every message, fault, and property check. <a href="viewer.html" style="color:var(--indigo);font-weight:500;text-decoration:underline;text-underline-offset:2px;">Try the live demo →</a></p>
           <div class="cmd-block"><span class="comment"># View a previously saved trace</span>
 <span class="prompt">$</span> <span class="cmd">agentqa view</span> <span class="string">.agentqa/traces/run_1.jsonl</span>
 

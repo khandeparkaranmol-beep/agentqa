@@ -10,7 +10,7 @@ pip install agentqa
 
 ## Documentation
 
-- **GitHub Pages site** — folder [`docs/`](docs/): [`index.html`](docs/index.html) is the **full user guide** and embeds the trace viewer demo via iframe from [`viewer.html`](docs/viewer.html) (same bundle as `agentqa view`). Maintainer map: [`docs/README.md`](docs/README.md). Include [`.nojekyll`](docs/.nojekyll) when publishing.
+- **GitHub Pages site** — folder [`docs/`](docs/): [`index.html`](docs/index.html) is the **full user guide** and links to [`viewer.html`](docs/viewer.html) for the live trace viewer demo (same bundle as `agentqa view`). Maintainer map: [`docs/README.md`](docs/README.md). Include [`.nojekyll`](docs/.nojekyll) when publishing.
 
 ## Bootstrap from your codebase (`agentqa init`)
 
@@ -100,10 +100,10 @@ You get **one React viewer** (built from [`frontend/`](frontend/); bundled as [`
 | Where | Data |
 |--------|------|
 | **`agentqa view trace.jsonl`**, **`agentqa run … --view`**, **`agentqa export … --format html`** | Your trace is injected as `window.__AGENTQA_DATA__` in the HTML file. |
-| **[`docs/index.html`](docs/index.html)** (GitHub Pages home) | Full guide page that **iframes** [`viewer.html`](docs/viewer.html) so the demo sits inside the documentation. |
-| **[`docs/viewer.html`](docs/viewer.html)** | Same React bundle as `agentqa view`; sample data when no trace is injected (used both standalone and inside the guide iframe). |
+| **[`docs/index.html`](docs/index.html)** (GitHub Pages home) | Full guide with a **link** to open [`viewer.html`](docs/viewer.html) for the interactive demo. |
+| **[`docs/viewer.html`](docs/viewer.html)** | Same React bundle as `agentqa view`; sample data when no trace is injected. |
 
-So: **same shipped UI** — your exports inject real trace JSON; the checked-in **`viewer.html`** uses bundled sample data and is embedded in **`index.html`** on Pages.
+So: **same shipped UI** — your exports inject real trace JSON; the checked-in **`viewer.html`** uses bundled sample data; the guide **`index.html`** points readers there for the Pages demo.
 
 ## Why AgentQA?
 
