@@ -1,0 +1,173 @@
+# ============================================================================
+# AgentQA — Your First Scenario
+# ============================================================================
+#
+# This file is a fully runnable scenario AND a tutorial. Every field is
+# explained inline so you can learn the format by reading real config.
+#
+# WHAT THIS TESTS:
+#   Two agents negotiate a price. We verify they reach agreement within the
+#   turn limit and that neither agent leaks the other's private data.
+#
+# HOW TO RUN:
+#   agentqa run examples/annotated/01_getting_started.yaml
+#   agentqa run examples/annotated/01_getting_started.yaml --runs 10
+#   agentqa run examples/annotated/01_getting_started.yaml --view   # opens HTML viewer
+#
+# WHAT YOU'LL SEE:
+#   AgentQA runs this scenario 5 times (the default), then reports which
+#   properties passed/failed across all runs with statistical pass rates.
+#   A single flaky pass isn't enough — you need confidence across N runs.
+#
+# ============================================================================
+
+
+# --- name (required) ---------------------------------------------------------
+# A human-readable identifier for this scenario. Shows up in CLI output,
+# the HTML trace viewer, and dashboard reports. Keep it descriptive.
+name: "Price negotiation — getting started"
+
+
+# --- agents (required) -------------------------------------------------------
+# The agents participating in this scenario. Each agent needs:
+#   - name:   A unique identifier (used everywhere: setup, assertions, faults)
+#   - role:   (optional) A description of what this agent should do.
+#             Shown in the trace viewer next to the agent's name.
+#   - config: (optional) Arbitrary key-value pairs passed to the agent adapter.
+#             Use this for model parameters, temperature, system prompts, etc.
+agents:
+  - name: buyer
+    role: "Negotiate the lowest price for a widget"
+    # config:                         # ← uncomment to pass adapter-specific config
+    #   model: "gpt-4o"               #   e.g., which LLM model to use
+    #   temperature: 0.7              #   or sampling temperature
+
+  - name: seller
+    role: "Negotiate the highest price for a widget"
+
+
+# --- turns (optional, default: 20) -------------------------------------------
+# How many interaction turns to simulate. One turn = one agent sends a message.
+# Agents take turns in round-robin order: turn 0 → buyer, turn 1 → seller,
+# turn 2 → buyer, turn 3 → seller, and so on.
+#
+# Set this high enough for agents to complete their task, but low enough to
+# catch infinite loops. If your agents should converge in ~6 exchanges,
+# try turns: 12 (2 agents × 6 exchanges each).
+turns: 10
+
+
+# --- runs (optional, default: 5) ---------------------------------------------
+# Number of times to repeat this scenario. AgentQA's core insight: a single
+# pass/fail tells you nothing about non-deterministic agents. Run N times
+# and report statistical pass rates.
+#
+# Guidelines:
+#   3–5   Quick smoke test during development
+#   10    Good for CI pipelines
+#   20    Use --thorough flag (agentqa run ... --thorough) for release gates
+#
+# The CLI --runs flag overrides this value.
+runs: 5
+
+
+# --- setup (optional) --------------------------------------------------------
+# Private context given to each agent at the start of the simulation.
+# Each key is an agent name; the value is a dict of data only THAT agent
+# should know. This data is:
+#   1. Passed to the agent's .setup() method before turn 0
+#   2. Used by property checkers like no_information_leak to detect leaks
+#
+# IMPORTANT: If the buyer's budget appears in the seller's messages, that's
+# a leak. AgentQA detects this automatically by scanning setup values.
+setup:
+  buyer:
+    budget: 10000                     # Only the buyer should know this
+    preferred_supplier: "Acme Corp"   # Additional private context
+
+  seller:
+    floor_price: 6850                 # Only the seller should know this
+    warehouse: "Building J"           # Additional private context
+
+
+# --- assertions (optional but recommended) ------------------------------------
+# Property checks to run after each simulation completes. Each assertion
+# references a built-in property checker by name and passes optional params.
+#
+# If no assertions are defined, AgentQA runs the simulation but reports no
+# pass/fail — useful for exploratory trace generation, but not for testing.
+#
+# FULL LIST OF PROPERTY CHECKERS (17 total):
+#   converges_within             — Did agents reach agreement in time?
+#   no_deadlock                  — Are agents stuck in a loop?
+#   no_information_leak          — Did private setup data leak between agents?
+#   ensures_information_flow     — Did required data transfer happen?
+#   state_continuity             — Did an agent lose memory of prior context?
+#   no_conversation_reset        — Did agent state revert to near-initial?
+#   asks_for_clarification       — Did agent ask before acting on ambiguity?
+#   communication_quality        — Are messages substantive? (length, acks)
+#   role_boundary                — Did agent stay within its role?
+#   output_schema                — Does final message match a JSON schema?
+#   stays_on_task                — Did agent drift off-topic?
+#   no_premature_termination     — Did agent declare "done" too early?
+#   reasoning_action_consistency — Did agent contradict its stated intent?
+#   step_repetition              — Is agent stuck repeating the same message?
+#   respects_peer_input          — Did agent acknowledge peer corrections?
+#   task_specification_compliance— Does output meet keyword requirements?
+#   no_conversation_reset        — Did agent state revert unexpectedly?
+#
+# This example uses two of the most common ones:
+assertions:
+
+  # ---- no_information_leak ---------------------------------------------------
+  # Scans all messages for string values from other agents' setup data.
+  # If the seller mentions "10000" (the buyer's budget), this fails.
+  #
+  # With no params, it checks ALL setup values against ALL messages.
+  # You can narrow the scope with optional params:
+  #   from_agent: "buyer"      — only check buyer's secrets
+  #   to_agent: "seller"       — only check seller's messages
+  #   field: "budget"          — only check the "budget" field
+  - name: no_information_leak
+    # params: {}                       # ← no params = check everything (recommended)
+
+  # ---- converges_within ------------------------------------------------------
+  # Checks whether agents reached agreement or completion before a turn limit.
+  # "Convergence" is detected by scanning messages for keywords like:
+  #   "agreed", "deal", "done", "accepted", "settled"
+  # ...or by checking message metadata for {"done": true}.
+  #
+  # Params:
+  #   max_turns:  (int, default: scenario.turns) — deadline for convergence
+  #   markers:    (list[str]) — custom convergence keywords
+  #              default: ["agreed", "deal", "done", "accepted", "settled"]
+  - name: converges_within
+    params:
+      max_turns: 10                   # Must converge within all 10 turns
+      # markers:                      # ← uncomment to add custom keywords
+      #   - "agreed"
+      #   - "final offer accepted"
+
+
+# --- agents_file (optional) --------------------------------------------------
+# Path to a Python file that exports an `agents` dict mapping agent names
+# to AgentUnderTest instances. Relative paths resolve from this YAML's dir.
+#
+# Default: looks for agents.py in the same directory as this scenario file.
+#
+# agents_file: "my_agents.py"        # ← uncomment to use a custom agents file
+
+
+# ============================================================================
+# WHAT'S NOT IN THIS FILE (and where to find it):
+#
+#   Fault injection    → See 02_fault_injection.yaml
+#   Milestones         → See 03_full_scenario.yaml
+#   All 17 properties  → See 03_full_scenario.yaml
+#   agents.py patterns → See agents.py in any example directory
+#
+# NEXT STEPS:
+#   1. Write an agents.py in this directory (see examples/negotiation/agents.py)
+#   2. Run: agentqa run examples/annotated/01_getting_started.yaml --view
+#   3. Try: agentqa run examples/annotated/ --runs 10   (runs ALL scenarios)
+# ============================================================================

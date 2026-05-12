@@ -33,6 +33,12 @@ export function App() {
   const [filters, setFilters] = useState<Filters>(EMPTY_FILTERS);
   const [showDetails, setShowDetails] = useState(false);
 
+  // Multi-run: which run is currently displayed (0-based). Start at last run.
+  const [activeRunIndex, setActiveRunIndex] = useState(() => {
+    const d = getAppData();
+    return d.all_runs && d.all_runs.length > 1 ? d.all_runs.length - 1 : 0;
+  });
+
   // Track main stage column bounds for centering controls
   const [stageBounds, setStageBounds] = useState<{ left: number; width: number } | null>(null);
   const stageCleanupRef = useRef<(() => void) | null>(null);
@@ -76,9 +82,30 @@ export function App() {
   const isDiff = data.mode === "diff";
   const isDashboard = data.mode === "dashboard";
 
-  const agents = isTrace ? getAgents(data.events) : [];
-  const messages = isTrace ? buildMessageEvents(data.events, data.results) : [];
+  // Resolve active run's events and results
+  const hasMultiRun = isTrace && data.all_runs && data.all_runs.length > 1;
+  const activeEvents = useMemo(() => {
+    if (hasMultiRun && data.all_runs![activeRunIndex]) {
+      return data.all_runs![activeRunIndex].events;
+    }
+    return data.events;
+  }, [hasMultiRun, data, activeRunIndex]);
+  const activeResults = useMemo(() => {
+    if (hasMultiRun && data.all_runs![activeRunIndex]) {
+      return data.all_runs![activeRunIndex].results;
+    }
+    return data.results;
+  }, [hasMultiRun, data, activeRunIndex]);
+
+  const agents = isTrace ? getAgents(activeEvents) : [];
+  const messages = isTrace ? buildMessageEvents(activeEvents, activeResults) : [];
   const agentRoles = useMemo(() => isTrace ? getAgentRoles(agents, data.agent_roles) : {}, [isTrace, agents, data.agent_roles]);
+
+  // Per-run results for coloring run pills
+  const allRunResults = useMemo(() => {
+    if (!data.all_runs) return undefined;
+    return data.all_runs.map(r => r.results);
+  }, [data.all_runs]);
 
   // Filter indices for Timeline view
   const highlightedIndices = useMemo(() => {
@@ -95,6 +122,12 @@ export function App() {
   }, [filters, messages]);
 
   const replay = useReplay(messages.length);
+
+  // Reset replay when switching runs
+  const handleRunSelect = useCallback((idx: number) => {
+    setActiveRunIndex(idx);
+    replay.jumpToStart();
+  }, [replay]);
 
   // Derived title info
   const prettyTitle = isTrace ? formatTitle(data.title.split("—")[0].trim()) : "";
@@ -140,6 +173,23 @@ export function App() {
     window.addEventListener("keydown", handleKeyDown);
     return () => window.removeEventListener("keydown", handleKeyDown);
   }, [handleKeyDown]);
+
+  // Shared hero props
+  const heroProps = {
+    prettyTitle,
+    runLabel,
+    topoLabel,
+    agents,
+    agentRoles,
+    messageCount: messages.length,
+    checkCount: activeResults.length,
+    passedChecks: activeResults.filter(r => r.passed).length,
+    runSummary: data.run_summary,
+    totalRuns: data.all_runs?.length,
+    activeRun: activeRunIndex,
+    allRunResults,
+    onRunSelect: handleRunSelect,
+  };
 
   return (
     <div className="min-h-screen bg-slate-50 dark:bg-slate-950 text-slate-900 dark:text-slate-100">
@@ -227,21 +277,12 @@ export function App() {
             {/* ── Spotlight: full width, pure cinema, hero centered ── */}
             {viewMode === "spotlight" && (
               <div className="relative">
-                <ScenarioHero
-                  prettyTitle={prettyTitle}
-                  runLabel={runLabel}
-                  topoLabel={topoLabel}
-                  agents={agents}
-                  agentRoles={agentRoles}
-                  messageCount={messages.length}
-                  checkCount={data.results.length}
-                  centered
-                />
+                <ScenarioHero {...heroProps} centered />
                 <SpotlightView
                   agents={agents}
                   agentRoles={agentRoles}
                   messages={messages}
-                  results={data.results}
+                  results={activeResults}
                   visibleUpTo={replay.visibleUpTo}
                   speed={replay.speed}
                 />
@@ -254,21 +295,13 @@ export function App() {
                 {/* Main stage — 75% on desktop */}
                 <div ref={stageRef} className="flex-1 min-w-0 lg:pr-4">
                   {/* Hero — aligned with main stage, not full viewport */}
-                  <ScenarioHero
-                    prettyTitle={prettyTitle}
-                    runLabel={runLabel}
-                    topoLabel={topoLabel}
-                    agents={agents}
-                    agentRoles={agentRoles}
-                    messageCount={messages.length}
-                    checkCount={data.results.length}
-                  />
+                  <ScenarioHero {...heroProps} />
                   {viewMode === "constellation" && (
                     <ConstellationView
                       agents={agents}
                       agentRoles={agentRoles}
                       messages={messages}
-                      results={data.results}
+                      results={activeResults}
                       visibleUpTo={replay.visibleUpTo}
                       speed={replay.speed}
                     />
@@ -323,7 +356,7 @@ export function App() {
                     {/* Panels — always visible on desktop, toggled on mobile */}
                     <div className={`space-y-3 ${showDetails ? "" : "hidden lg:block"}`}>
                       <IssuesPanel messages={messages} agents={agents} visibleUpTo={replay.visibleUpTo} />
-                      <StateTimeline events={data.events} agents={agents} visibleUpTo={replay.visibleUpTo} />
+                      <StateTimeline events={activeEvents} agents={agents} visibleUpTo={replay.visibleUpTo} />
                       <CostBreakdown messages={messages} agents={agents} />
                       <TopologyGraph messages={messages} agents={agents} topology={data.topology} />
                     </div>

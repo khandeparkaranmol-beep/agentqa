@@ -104,7 +104,7 @@ const E = (type: "message" | "fault_injected" | "property_check" | "state_change
 
 const SAMPLE_DATA: import("./types").TraceData = {
   mode: "trace",
-  title: "procurement_negotiation — Run 3 / 5",
+  title: "procurement_negotiation — Run 5 / 5",
   topology: "mesh",
   agentqa_version: "0.5.0",
   agent_roles: {
@@ -113,6 +113,20 @@ const SAMPLE_DATA: import("./types").TraceData = {
     buyer: "Negotiates pricing with sellers",
     seller: "Represents the supplier side",
     auditor: "Monitors compliance and flags issues",
+  },
+  run_summary: {
+    total_runs: 5,
+    properties: {
+      no_information_leak:          { passes: 5, failures: 0, pass_rate: 1.0 },
+      ensures_information_flow:     { passes: 5, failures: 0, pass_rate: 1.0 },
+      no_deadlock:                  { passes: 5, failures: 0, pass_rate: 1.0 },
+      role_boundary:                { passes: 4, failures: 1, pass_rate: 0.8 },
+      converges_within:             { passes: 2, failures: 3, pass_rate: 0.4 },
+      no_premature_termination:     { passes: 3, failures: 2, pass_rate: 0.6 },
+      task_specification_compliance:{ passes: 5, failures: 0, pass_rate: 1.0 },
+      communication_quality:        { passes: 1, failures: 4, pass_rate: 0.2 },
+      step_repetition:              { passes: 2, failures: 3, pass_rate: 0.4 },
+    },
   },
   results: [
     { property_name: "no_information_leak", passed: true, details: "No private data (budget, floor_price) leaked across agent boundaries." },
@@ -212,3 +226,110 @@ const SAMPLE_DATA: import("./types").TraceData = {
     E("property_check", 9, null, { property_name: "step_repetition", passed: false, details: "Agent 'buyer' repeated structurally identical message 4 times (max: 3) at turns 9, 11, 14, 16.", is_milestone: false }),
   ],
 };
+
+// ── Multi-run: 5 runs with varying check outcomes ──────────────────────────
+// Reuses the same message events but changes property results per run.
+// Matches the run_summary stats defined above.
+(() => {
+  // Extract message + fault + state events (shared across runs)
+  const sharedEvents = SAMPLE_DATA.events.filter(e => e.type !== "property_check");
+
+  // Per-run property outcomes:
+  //   no_information_leak:           5/5 pass
+  //   ensures_information_flow:      5/5 pass
+  //   no_deadlock:                   5/5 pass
+  //   role_boundary:                 4/5 pass  (fails run 2)
+  //   converges_within:              2/5 pass  (fails runs 3, 4, 5)
+  //   no_premature_termination:      3/5 pass  (fails runs 4, 5)
+  //   task_specification_compliance: 5/5 pass
+  //   communication_quality:         1/5 pass  (fails runs 1, 2, 3, 5)
+  //   step_repetition:               2/5 pass  (fails runs 2, 3, 5)
+  const runChecks: { passed: boolean; details: string; turn?: number }[][] = [
+    // Run 1: communication_quality fails
+    [
+      { passed: true, details: "No private data leaked across agent boundaries." },
+      { passed: true, details: "Required data flows all observed." },
+      { passed: true, details: "No mutual-wait cycles detected." },
+      { passed: true, details: "No agent performed actions outside its declared role." },
+      { passed: true, details: "Negotiation converged at turn 14." },
+      { passed: true, details: "All milestones reached before done signal." },
+      { passed: true, details: "All required terms present. Score: 0.95." },
+      { passed: false, details: "Average message length 28 chars (min: 50). Brevity rate 0.58 exceeds threshold 0.4.", turn: 11 },
+      { passed: true, details: "No structurally identical messages detected." },
+    ],
+    // Run 2: role_boundary, communication_quality, step_repetition fail
+    [
+      { passed: true, details: "No private data leaked across agent boundaries." },
+      { passed: true, details: "Required data flows all observed." },
+      { passed: true, details: "No mutual-wait cycles detected." },
+      { passed: false, details: "Agent 'buyer' issued a compliance audit action reserved for 'auditor' role.", turn: 7 },
+      { passed: true, details: "Negotiation converged at turn 13." },
+      { passed: true, details: "All milestones reached before done signal." },
+      { passed: true, details: "All required terms present. Score: 0.91." },
+      { passed: false, details: "Average message length 19 chars (min: 50). Brevity rate 0.71 exceeds threshold 0.4.", turn: 10 },
+      { passed: false, details: "Agent 'buyer' repeated structurally identical message 3 times at turns 8, 10, 12.", turn: 8 },
+    ],
+    // Run 3: converges_within, communication_quality, step_repetition fail
+    [
+      { passed: true, details: "No private data leaked across agent boundaries." },
+      { passed: true, details: "Required data flows all observed." },
+      { passed: true, details: "No mutual-wait cycles detected." },
+      { passed: true, details: "No agent performed actions outside its declared role." },
+      { passed: false, details: "Negotiation did not converge within 15 turns (continued to turn 18).", turn: 15 },
+      { passed: true, details: "All milestones reached before done signal." },
+      { passed: true, details: "All required terms present. Score: 0.89." },
+      { passed: false, details: "Average message length 22 chars (min: 50). Brevity rate 0.63 exceeds threshold 0.4.", turn: 13 },
+      { passed: false, details: "Agent 'seller' repeated structurally identical message 4 times at turns 10, 12, 15, 17.", turn: 10 },
+    ],
+    // Run 4: converges_within, no_premature_termination fail
+    [
+      { passed: true, details: "No private data leaked across agent boundaries." },
+      { passed: true, details: "Required data flows all observed." },
+      { passed: true, details: "No mutual-wait cycles detected." },
+      { passed: true, details: "No agent performed actions outside its declared role." },
+      { passed: false, details: "Negotiation did not converge within 15 turns (continued to turn 20).", turn: 15 },
+      { passed: false, details: "Milestone 'contract_signed' not reached before done signal.", turn: 20 },
+      { passed: true, details: "All required terms present. Score: 0.93." },
+      { passed: true, details: "Communication quality within acceptable parameters. Score: 0.82." },
+      { passed: true, details: "No structurally identical messages detected." },
+    ],
+    // Run 5 (current): converges_within, no_premature_termination, communication_quality, step_repetition fail
+    [
+      { passed: true, details: "No private data leaked across agent boundaries." },
+      { passed: true, details: "Required data flows all observed." },
+      { passed: true, details: "No mutual-wait cycles detected." },
+      { passed: true, details: "No agent performed actions outside its declared role." },
+      { passed: false, details: "Negotiation did not converge within 15 turns (continued to turn 19).", turn: 15 },
+      { passed: false, details: "Milestone 'contract_signed' not reached before done signal.", turn: 19 },
+      { passed: true, details: "All required terms present. Score: 0.92." },
+      { passed: false, details: "Average message length 23 chars (min: 50). Brevity rate 0.65 exceeds threshold 0.4.", turn: 12 },
+      { passed: false, details: "Agent 'buyer' repeated structurally identical message 4 times at turns 9, 11, 14, 16.", turn: 9 },
+    ],
+  ];
+
+  const propNames = [
+    "no_information_leak", "ensures_information_flow", "no_deadlock",
+    "role_boundary", "converges_within", "no_premature_termination",
+    "task_specification_compliance", "communication_quality", "step_repetition",
+  ];
+
+  SAMPLE_DATA.all_runs = runChecks.map((checks) => {
+    const checkEvents = checks.map((c, i) =>
+      E("property_check", c.turn ?? -1, null, {
+        property_name: propNames[i],
+        passed: c.passed,
+        details: c.details,
+        is_milestone: false,
+      })
+    );
+    return {
+      events: [...sharedEvents, ...checkEvents],
+      results: checks.map((c, i) => ({
+        property_name: propNames[i],
+        passed: c.passed,
+        details: c.details,
+        turn: c.turn,
+      })),
+    };
+  });
+})();

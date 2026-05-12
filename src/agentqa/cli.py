@@ -89,17 +89,24 @@ def run(
                 saved_paths.append(dest)
             click.echo(f"  Saved {len(saved_paths)} trace(s) → {trace_dir}/")
 
+        summary = engine.summarize(traces)
+
         # Open the interactive HTML viewer for the first trace.
         if open_viewer and saved_paths:
             import webbrowser
             from agentqa.export import export_html
 
             html_path = saved_paths[0].with_suffix(".html")
-            export_html(traces[0], html_path, title=scenario.name)
+            export_html(
+                traces[0],
+                html_path,
+                title=scenario.name,
+                run_summary=summary,
+                all_traces=traces,
+            )
             click.echo(f"  Viewer → {html_path}")
             webbrowser.open(html_path.resolve().as_uri())
 
-        summary = engine.summarize(traces)
         failed = print_summary(summary, threshold=threshold)
         if failed:
             any_failure = True
@@ -266,6 +273,107 @@ def replay(
             any_failure = True
 
     sys.exit(1 if any_failure else 0)
+
+
+@main.command()
+@click.argument("directory", type=click.Path(exists=True, file_okay=False), default=".")
+@click.option("--framework", type=click.Choice(["crewai", "langgraph", "autogen"]),
+              default=None, help="Force a specific framework scanner instead of auto-detecting.")
+@click.option("--output", "-o", default=None, type=click.Path(),
+              help="Output directory for generated files. Defaults to DIRECTORY.")
+@click.option("--force", is_flag=True, help="Overwrite existing scenario.yaml and agents.py.")
+@click.option("--verbose", is_flag=True, help="Enable debug output.")
+def init(
+    directory: str,
+    framework: str | None,
+    output: str | None,
+    force: bool,
+    verbose: bool,
+) -> None:
+    """Scan a project for multi-agent code and generate a starter test scenario.
+
+    Detects CrewAI, LangGraph, or AutoGen agent definitions via AST parsing,
+    then generates a scenario.yaml and agents.py scaffold with smart defaults.
+
+    \b
+    Examples:
+      agentqa init                       # scan current directory
+      agentqa init ./my_project          # scan a specific directory
+      agentqa init . --framework crewai  # force CrewAI scanner
+      agentqa init . -o tests/           # write files to tests/
+    """
+    if verbose:
+        logging.basicConfig(level=logging.DEBUG)
+
+    from agentqa.scanner import scan_project
+    from agentqa.scaffold import generate_scenario_yaml, generate_agents_py
+
+    src_dir = Path(directory)
+    out_dir = Path(output) if output else src_dir
+
+    # Check for existing files
+    scenario_dest = out_dir / "scenario.yaml"
+    agents_dest = out_dir / "agents.py"
+
+    if not force:
+        existing = []
+        if scenario_dest.exists():
+            existing.append(str(scenario_dest))
+        if agents_dest.exists():
+            existing.append(str(agents_dest))
+        if existing:
+            click.echo(
+                f"Files already exist: {', '.join(existing)}\n"
+                f"Use --force to overwrite, or -o to write to a different directory.",
+                err=True,
+            )
+            sys.exit(1)
+
+    # Scan the project
+    click.echo(f"Scanning {src_dir.resolve()} for multi-agent framework code...")
+
+    result = scan_project(src_dir, framework=framework)
+
+    if result is None:
+        click.echo(
+            "\nNo multi-agent framework detected.\n\n"
+            "AgentQA looks for:\n"
+            "  • CrewAI   — Agent(), Crew(), @CrewBase classes\n"
+            "  • LangGraph — StateGraph, add_node(), add_edge()\n"
+            "  • AutoGen  — AssistantAgent, ConversableAgent, GroupChat\n\n"
+            "If your agents use a different framework, you can write scenarios manually.\n"
+            "See: agentqa run examples/annotated/01_getting_started.yaml --view",
+            err=True,
+        )
+        sys.exit(1)
+
+    # Report what we found
+    click.echo(f"\n  Framework: {click.style(result.framework, fg='cyan', bold=True)}")
+    click.echo(f"  Source:    {result.entry_file}")
+    click.echo(f"  Agents:    {len(result.agents)} found\n")
+
+    for i, agent in enumerate(result.agents):
+        role_str = f" — {agent.role[:60]}..." if agent.role and len(agent.role) > 60 else f" — {agent.role}" if agent.role else ""
+        click.echo(f"    {i + 1}. {click.style(agent.name, bold=True)}{role_str}")
+
+    if result.edges:
+        click.echo(f"\n  Topology ({len(result.edges)} edges):")
+        for edge in result.edges:
+            click.echo(f"    {edge.source} → {edge.target}")
+
+    # Generate files
+    out_dir.mkdir(parents=True, exist_ok=True)
+    scenario_path = generate_scenario_yaml(result, out_dir)
+    agents_path = generate_agents_py(result, out_dir)
+
+    click.echo(f"\n  Generated: {click.style(str(scenario_path), fg='green')}")
+    click.echo(f"  Generated: {click.style(str(agents_path), fg='green')}")
+
+    click.echo(f"\n{click.style('Next steps:', bold=True)}")
+    click.echo(f"  1. Edit {agents_path.name} to import your real agents")
+    click.echo(f"  2. Add private data to scenario.yaml 'setup' section")
+    click.echo(f"  3. Run your first test:\n")
+    click.echo(f"     {click.style(f'agentqa run {scenario_path} --view', fg='cyan')}\n")
 
 
 def _collect_scenario_paths(path: Path) -> list[Path]:

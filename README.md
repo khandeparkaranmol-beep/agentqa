@@ -2,13 +2,34 @@
 
 **Test multi-agent AI systems before they hit production.**
 
-AgentQA simulates how your agents interact under hundreds of scenarios — catching deadlocks, information leaks, cascading failures, and role violations in your test suite instead of in production.
+AgentQA simulates how your agents interact — catching deadlocks, information leaks, coordination failures, and role violations in your test suite instead of in production. It runs entirely on your machine: YAML scenarios, a Python simulation engine, JSONL traces, and an optional self-contained HTML trace viewer.
 
 ```bash
 pip install agentqa
 ```
 
-## 60-Second Quickstart
+## Documentation
+
+- **User guide & landing** — static site in [`docs/`](docs/) (publish with GitHub Pages from the `docs/` folder; include [`.nojekyll`](docs/.nojekyll) so Jekyll does not strip assets). Maintainer map of every file: [`docs/README.md`](docs/README.md).
+- **Interactive UI demo** — [`docs/viewer.html`](docs/viewer.html): same viewer app as exports, preloaded with **synthetic sample data** when no trace is embedded (see [Trace viewer vs demo](#trace-viewer-vs-demo) below).
+
+## Bootstrap from your codebase (`agentqa init`)
+
+For **CrewAI**, **LangGraph**, or **AutoGen** projects, generate a starter `scenario.yaml` and `agents.py` by scanning Python sources (AST-based, no LLM):
+
+```bash
+cd your_project
+agentqa init .                    # writes scenario.yaml + agents.py here
+agentqa init ./src/agents -o tests/agentqa   # write into a subfolder
+agentqa init . --framework langgraph          # force a scanner
+agentqa init . --force                        # overwrite existing files
+```
+
+The scaffold picks property checkers from agent count and detected topology, wires **real** framework adapters when imports succeed, and falls back to deterministic `RawAgent` placeholders (with a warning) so you can still run `agentqa run scenario.yaml --view` immediately.
+
+## 60-Second Manual Quickstart
+
+Use this path for **RawAgent**-only setups, custom stacks, or when you prefer hand-written YAML.
 
 **1. Write a scenario** (`scenario.yaml`):
 
@@ -73,30 +94,42 @@ Overall: 1/2 properties passed. FAIL.
 
 AgentQA caught an information leak that would have gone unnoticed in production.
 
+## Trace viewer vs demo
+
+You get **one React viewer** (built from [`frontend/`](frontend/); bundled as [`src/agentqa/viewer/index.html`](src/agentqa/viewer/index.html) and included in the wheel).
+
+| Where | Data |
+|--------|------|
+| **`agentqa view trace.jsonl`**, **`agentqa run … --view`**, **`agentqa export … --format html`** | Your trace is injected as `window.__AGENTQA_DATA__` in the HTML file. |
+| **[`docs/viewer.html`](docs/viewer.html)** (GitHub Pages “demo”) | No embedded trace: the app uses **built-in sample data** from the bundle so visitors can explore Spotlight, Constellation, Timeline, filters, and replay without installing anything. |
+
+So: **same UI** — **demo** = sample story in the static page; **viewer** = that UI bound to **your** JSONL export.
+
 ## Why AgentQA?
 
-Existing tools (LangSmith, LangWatch, Maxim) test **individual agents** against simulated users. Nothing tests **agent-to-agent interactions** — the coordination bugs, the information leaks, the deadlocks that only emerge when multiple agents talk to each other.
+Existing tools (LangSmith, LangWatch, Maxim) test **individual agents** against simulated users. AgentQA targets **agent-to-agent interactions** — coordination bugs, leaks, and deadlocks that only show up when multiple agents talk to each other.
 
-AgentQA is the first tool built specifically for this. It is informed by peer-reviewed research:
+Research-informed design:
 
-- **MAST** (NeurIPS 2025) — 14 empirically-derived multi-agent failure modes. AgentQA has property checkers covering ~95% of failure frequency.
-- **MAESTRO** (arXiv 2601.00481) — Multi-run statistical testing. AgentQA runs every scenario N times and reports pass rates, not single-run pass/fail.
-- **MARBLE** (ACL 2025) — Communication topology benchmarking. AgentQA auto-classifies star/chain/tree/mesh topologies from traces.
+- **MAST** (NeurIPS 2025) — multi-agent failure taxonomy; property checkers align with common failure modes.
+- **MAESTRO** (arXiv 2601.00481) — multi-run statistical testing: every scenario runs **N** times (default 5) with aggregate pass rates.
+- **MARBLE** (ACL 2025) — communication topology; traces are classified (e.g. star / chain / tree / mesh).
 
 ## What It Catches
 
-AgentQA ships 15 property checkers across 4 failure categories:
+AgentQA ships **16** registered property checkers:
 
-| Category | Checkers | Example Failure |
-|---|---|---|
-| **Information flow** | `no_information_leak`, `ensures_information_flow`, `state_continuity`, `no_conversation_reset` | Agent B sees Agent A's private budget |
-| **Coordination** | `no_deadlock`, `converges_within`, `role_boundary`, `step_repetition` | Two agents wait for each other forever |
-| **Reasoning** | `reasoning_action_consistency`, `stays_on_task`, `respects_peer_input`, `communication_quality` | Agent says "I'll check the database" then doesn't |
-| **Completion** | `no_premature_termination`, `asks_for_clarification`, `task_specification_compliance` | Agent declares "done" before finishing the task |
+| Category | Checkers | Example failure |
+|----------|-----------|-----------------|
+| **Information flow** | `no_information_leak`, `ensures_information_flow`, `state_continuity`, `no_conversation_reset` | Agent B echoes Agent A's private budget |
+| **Coordination** | `no_deadlock`, `converges_within`, `role_boundary`, `step_repetition` | Mutual wait or stuck repetition |
+| **Reasoning** | `reasoning_action_consistency`, `stays_on_task`, `respects_peer_input`, `communication_quality` | Says it will act, then does not; trivial replies |
+| **Completion** | `no_premature_termination`, `asks_for_clarification`, `task_specification_compliance` | Declares done too early |
+| **Output shape** | `output_schema` | Response does not match expected structure |
 
 ## Fault Injection
 
-Test how your agents handle adversarial conditions:
+Faults are applied **between send and receive** (the receiver may see altered content). Five actions are built in:
 
 ```yaml
 inject:
@@ -111,55 +144,53 @@ inject:
     target: analyst
 ```
 
-Five fault types: `corrupt`, `drop`, `latency`, `contradictory`, `hallucination`.
+Fault types: `corrupt`, `drop`, `latency`, `contradictory`, `hallucination`.
 
 ## Interactive Trace Viewer
 
-Export any trace to a self-contained HTML file with an interactive swimlane diagram:
+Export any trace to a **single portable HTML file** (no server):
 
 ```bash
-agentqa view trace.jsonl          # export + open in browser
-agentqa diff a.jsonl b.jsonl      # side-by-side comparison
-agentqa dashboard traces/         # aggregate dashboard
+agentqa view trace.jsonl              # export + open in browser
+agentqa view trace.jsonl --no-open    # write HTML only
+agentqa run scenario.yaml --save-traces --view
+agentqa diff a.jsonl b.jsonl          # side-by-side comparison
+agentqa dashboard path/to/traces/     # aggregate over **/*.jsonl
 ```
 
-The viewer includes:
-- **Animated replay** — step through turns one by one with play/pause controls
-- **Agent state timeline** — see how each agent's internal state evolved
-- **Filter & search** — filter by agent, fault type, violation, or message content
-- **Keyboard shortcuts** — arrow keys to step, Space to play/pause
+The viewer supports **Spotlight**, **Constellation**, and **Timeline** modes, agent state and cost panels where data exists, **filters** (agent, faults, violations, text search), and **keyboard** shortcuts: **Space** play/pause, **←** **→** step, **Home** / **End** jump to ends, **Escape** clear selection.
+
+Developers rebuilding the bundle:
+
+```bash
+cd frontend && npm ci && npm run build
+```
+
+That refreshes `src/agentqa/viewer/index.html` (used by `export_html`). Copy to `docs/viewer.html` if you are updating the GitHub Pages demo.
 
 ## Framework Adapters
 
-Works with any Python agent framework:
-
 ```python
-# Raw Python callable (zero dependencies)
 from agentqa.adapters.raw import RawAgent
-
-# CrewAI
 from agentqa.adapters.crewai import CrewAIAgent
-
-# LangGraph
-from agentqa.adapters.langgraph import LangGraphAgent
-
-# AutoGen
+from agentqa.adapters.langgraph import LangGraphAgent, LangGraphNodeAgent
 from agentqa.adapters.autogen import AutoGenAgent
 ```
 
-The adapter contract is two methods: `receive(message) -> response` and `get_state() -> dict`.
+`LangGraphNodeAgent` wraps individual graph node callables (used by **`agentqa init`** when it extracts nodes). `LangGraphAgent` is available for whole-graph style integration where that fits your code.
+
+The `AgentUnderTest` contract is: `receive(message: Message) -> Response` and `get_state() -> dict` (plus optional `setup` / `teardown`). `RawAgent` uses simple `(msg: dict, state: dict) -> str` handlers for quick tests.
 
 ## pytest Integration
 
-AgentQA scenarios run as pytest tests:
-
 ```bash
 pytest examples/           # discovers .yaml scenario files
-pytest --agentqa-only      # only run AgentQA scenarios
+pytest --agentqa-only      # only AgentQA scenarios
 ```
 
 ```python
-# Or programmatically:
+from agentqa.engine import SimulationEngine
+
 def test_no_leaks():
     engine = SimulationEngine(agents, scenario)
     traces = engine.run()
@@ -170,24 +201,29 @@ def test_no_leaks():
 ## CLI Reference
 
 ```bash
-agentqa run <path>              # run scenarios (file or directory)
-agentqa run <path> --runs 20    # override run count
-agentqa run <path> --thorough   # shorthand for --runs 20
-agentqa view <trace.jsonl>      # interactive HTML viewer
-agentqa diff <a> <b>            # side-by-side trace diff
-agentqa dashboard <dir>         # aggregate dashboard
-agentqa export <trace> --format html|mast
-agentqa replay <trace> --scenario <yaml>
+agentqa init [DIR]              # scan for CrewAI / LangGraph / AutoGen; write scenario.yaml + agents.py
+  [--framework crewai|langgraph|autogen] [-o OUT_DIR] [--force] [--verbose]
+
+agentqa run <path>              # run scenarios (file or directory of YAML)
+  [--runs N] [--thorough] [--agents FILE] [--threshold 0-1]
+  [--save-traces] [--view] [--verbose]
+
+agentqa view <trace.jsonl> [--output FILE] [--title NAME] [--no-open]
+agentqa diff <a.jsonl> <b.jsonl> [-o FILE] [--title-a A] [--title-b B] [--no-open]
+agentqa dashboard <dir> [-o FILE] [--title TITLE] [--no-open]
+agentqa export <trace.jsonl> [--format html|mast] [-o FILE] [--title TITLE]
+agentqa replay <trace.jsonl> --scenario <scenario.yaml> [--up-to-turn N] [--verbose]
 ```
 
 ## Examples
 
-See [`examples/`](examples/) for complete working scenarios:
-
-- **negotiation/** — Buyer/seller price negotiation with intentional information leak
-- **task_delegation/** — Coordinator/executor/reviewer with fault injection
-- **task_completion/** — Two-agent handoff with milestones
-- **adversarial_agent/** — Agent resilience under contradictory instructions
+| Path | What it shows |
+|------|----------------|
+| [`examples/negotiation/`](examples/negotiation/) | Buyer/seller leak |
+| [`examples/task_delegation/`](examples/task_delegation/) | Coordinator / executor / reviewer + faults |
+| [`examples/task_completion/`](examples/task_completion/) | Handoff + milestones |
+| [`examples/adversarial_agent/`](examples/adversarial_agent/) | Resilience under contradictory instructions |
+| [`examples/annotated/`](examples/annotated/) | Runnable YAML **with inline tutorial comments** (`01_getting_started.yaml`, fault injection, full scenario) |
 
 ## License
 

@@ -21,31 +21,38 @@ This is a Python library + CLI tool. It is NOT a web app, NOT a SaaS, NOT an obs
 
 ```
 src/agentqa/
-├── __init__.py           # Version + public API exports
-├── cli.py                # Click CLI entry point
+├── __init__.py           # Version
+├── cli.py                # Click CLI: run, view, diff, dashboard, export, replay, init
 ├── engine.py             # Simulation engine (core runtime)
 ├── scenario.py           # YAML scenario loader + validation
-├── agent.py              # AgentUnderTest base class + registry
+├── agent.py              # AgentUnderTest base class + Message/Response models
 ├── trace.py              # Trace recording + JSONL output
-├── properties/           # Property checkers (invariant validators)
-│   ├── __init__.py
-│   ├── base.py           # PropertyChecker base class
-│   ├── information_leak.py
-│   ├── convergence.py
-│   ├── deadlock.py
-│   ├── role_boundary.py
-│   └── output_schema.py
-├── adapters/             # Framework-specific agent wrappers
-│   ├── __init__.py
-│   ├── raw.py            # Raw Python callable adapter
-│   ├── crewai.py         # CrewAI adapter
-│   └── langgraph.py      # LangGraph adapter
-├── faults/               # Fault injection implementations
-│   ├── __init__.py
-│   ├── corrupt.py
-│   ├── latency.py
-│   └── drop.py
+├── display.py            # CLI trace / summary printing
+├── export.py             # HTML viewer (React bundle + data inject), MAST export, diff, dashboard
+├── replay.py             # Replay property checks from JSONL + scenario YAML
+├── scaffold.py           # scenario.yaml + agents.py generation for `agentqa init`
+├── topology.py           # Topology summary from traces
+├── scanner/              # AST scanners for `agentqa init` (CrewAI, LangGraph, AutoGen)
+│   ├── detect.py         # Orchestration + framework detection
+│   ├── base.py           # ScanResult, FrameworkScanner
+│   ├── crewai.py
+│   ├── langgraph.py
+│   └── autogen.py
+├── properties/           # Property checkers (stateless; register in __init__.py)
+│   ├── base.py           # PropertyChecker, PropertyRegistry
+│   └── …                 # information_leak, convergence, deadlock, role_boundary, etc.
+├── adapters/             # Framework-specific AgentUnderTest wrappers
+│   ├── raw.py
+│   ├── crewai.py
+│   ├── langgraph.py      # LangGraphAgent + LangGraphNodeAgent (node fn wrapper)
+│   └── autogen.py
+├── faults/               # FaultInjector implementations (engine applies between send/receive)
+│   ├── corrupt.py, drop.py, latency.py, contradictory.py, hallucination.py
+│   └── base.py
+├── viewer/               # Prebuilt single-file HTML (from `frontend/` via npm run build)
 └── pytest_plugin.py      # pytest integration (scenario discovery)
+frontend/                 # Vite + React trace viewer (not installed with pip; dev-only build)
+docs/                     # GitHub Pages: landing, user guide, viewer.html demo copy
 ```
 
 ## Coding Conventions
@@ -64,7 +71,7 @@ src/agentqa/
 - **Property checkers are stateless.** They receive a complete `Trace` and return a `PropertyResult`. They do not modify state.
 - **The simulation engine owns the event loop.** Agents do not call each other directly. All communication goes through the engine, which records every message to the trace.
 - **Scenarios are declarative data, not code.** The YAML scenario file describes WHAT to test. The engine decides HOW to execute it.
-- **No LLM calls in the framework itself.** AgentQA orchestrates the developer's agents (which may use LLMs). AgentQA's own code is deterministic. LLM-powered features (scenario generation) come in v0.2.
+- **No LLM calls in the framework itself.** AgentQA orchestrates the developer's agents (which may use LLMs). AgentQA's own code is deterministic. `agentqa init` uses AST scanning (not an LLM) to scaffold tests from existing code. Optional LLM-assisted scenario authoring remains a separate product direction.
 - **Fault injection happens at the engine level**, between message send and receive. Faults never modify agent internals — they modify what the agent sees.
 - **Multi-run is default.** The engine always runs scenarios N times (default 5) and reports statistics. Never report a single pass/fail.
 
@@ -118,6 +125,8 @@ ScenarioConfig:
 - Run a scenario: `agentqa run examples/negotiation/scenario.yaml`
 - Run with multiple iterations: `agentqa run examples/negotiation/scenario.yaml --runs 10`
 - Install in dev mode: `pip install -e ".[dev]"`
+- Rebuild the HTML viewer template after UI changes: `cd frontend && npm ci && npm run build` (outputs to `src/agentqa/viewer/index.html`)
+- Integration tests (real LLM, optional): see `tests/integration/README.md`
 
 ## Research Context
 

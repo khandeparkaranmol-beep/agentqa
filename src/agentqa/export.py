@@ -74,7 +74,13 @@ def export_mast(trace: Trace, path: Path) -> None:
             fh.write(json.dumps(record) + "\n")
 
 
-def export_html(trace: Trace, path: Path, title: str = "AgentQA Trace") -> None:
+def export_html(
+    trace: Trace,
+    path: Path,
+    title: str = "AgentQA Trace",
+    run_summary: "RunSummary | None" = None,
+    all_traces: "list[Trace] | None" = None,
+) -> None:
     """Export a trace as a self-contained interactive HTML file (React viewer).
 
     Embeds the prebuilt React swimlane viewer with the trace data injected at
@@ -85,14 +91,55 @@ def export_html(trace: Trace, path: Path, title: str = "AgentQA Trace") -> None:
     (e.g. a developer checkout that hasn't run ``npm run build``).
 
     Args:
-        trace: The completed Trace to export.
+        trace: The completed Trace to export (used as the default/first view).
         path: Output file path (conventionally *.html).
         title: Page title shown in the browser tab and header.
+        run_summary: Optional multi-run aggregate stats (from
+            ``SimulationEngine.summarize``).  When present the viewer
+            displays statistical pass rates across all runs.
+        all_traces: Optional list of all run traces.  When present the
+            viewer embeds every run and lets the user switch between them.
     """
     path.parent.mkdir(parents=True, exist_ok=True)
     topo = topology_summary(trace)
 
-    property_results = [
+    data: dict = {
+        "mode": "trace",
+        "title": title,
+        "topology": topo["topology"],
+        "agentqa_version": _get_version(),
+        "events": [e.model_dump() for e in trace.events],
+        "results": _property_results(trace),
+    }
+
+    if run_summary is not None:
+        data["run_summary"] = {
+            "total_runs": run_summary.total_runs,
+            "properties": {
+                name: {"passes": s.passes, "failures": s.failures, "pass_rate": s.pass_rate}
+                for name, s in run_summary.property_results.items()
+            },
+            "milestones": {
+                name: {"passes": s.passes, "failures": s.failures, "pass_rate": s.pass_rate}
+                for name, s in run_summary.milestone_results.items()
+            } if run_summary.milestone_results else {},
+        }
+
+    if all_traces is not None:
+        data["all_runs"] = [
+            {
+                "events": [e.model_dump() for e in t.events],
+                "results": _property_results(t),
+            }
+            for t in all_traces
+        ]
+
+    _write_viewer_html(data, title, path)
+
+
+def _property_results(trace: Trace) -> list[dict]:
+    """Extract non-milestone property check results from a trace."""
+    return [
         {
             "property_name": e.data.get("property_name", ""),
             "passed": bool(e.data.get("passed", True)),
@@ -102,17 +149,6 @@ def export_html(trace: Trace, path: Path, title: str = "AgentQA Trace") -> None:
         for e in trace.events
         if e.type == "property_check" and not e.data.get("is_milestone")
     ]
-
-    data: dict = {
-        "mode": "trace",
-        "title": title,
-        "topology": topo["topology"],
-        "agentqa_version": _get_version(),
-        "events": [e.model_dump() for e in trace.events],
-        "results": property_results,
-    }
-
-    _write_viewer_html(data, title, path)
 
 
 def diff_html(

@@ -40,7 +40,7 @@ The simulation engine orchestrates multi-agent interactions in a controlled envi
 
 ### Agent Adapter Layer
 
-The `AgentUnderTest` abstract class defines a two-method contract: `receive(message) → response` and `get_state() → dict`. This is deliberately minimal — any agent, regardless of framework, can implement these two methods and become testable. The `RawAgent` adapter ships in v0.1 for wrapping plain Python functions. CrewAI and LangGraph adapters are on the v0.2 roadmap.
+The `AgentUnderTest` abstract class defines a two-method contract: `receive(message) → response` and `get_state() → dict`. This is deliberately minimal — any agent, regardless of framework, can implement these two methods and become testable. The `RawAgent` adapter wraps plain Python callables. **CrewAI, LangGraph (including `LangGraphNodeAgent` for graph nodes), and AutoGen** adapters ship for wrapping framework objects. **`agentqa init`** scans a Python project (AST-based) and scaffolds `scenario.yaml` plus `agents.py` for those stacks.
 
 The adapter contract is the most important interface in the system. It is intentionally thin because the cost of a complex adapter is that developers won't bother wrapping their agents. The tax on adoption must be near zero.
 
