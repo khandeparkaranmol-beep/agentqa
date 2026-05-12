@@ -215,13 +215,16 @@ export function App() {
       <header className="sticky top-0 z-20 animate-fade-in">
         <div className="px-6 py-3 flex items-center gap-3">
           <span className="opacity-25 hover:opacity-60 transition-opacity duration-500 inline-flex items-center gap-2">
-            <svg width="20" height="20" viewBox="0 0 22 22" fill="none">
-              <rect width="22" height="22" rx="6" fill="#6366f1" />
-              <circle cx="7" cy="11" r="2.5" fill="white" />
-              <circle cx="15" cy="7" r="2.5" fill="white" />
-              <circle cx="15" cy="15" r="2.5" fill="white" />
-              <line x1="9.2" y1="10" x2="13" y2="8" stroke="white" strokeWidth="1.5" />
-              <line x1="9.2" y1="12" x2="13" y2="14" stroke="white" strokeWidth="1.5" />
+            <svg width="20" height="20" viewBox="0 0 110 110" fill="none">
+              <rect width="110" height="110" rx="22" fill="#6366f1" />
+              <ellipse cx="55" cy="55" rx="32" ry="11" stroke="white" strokeWidth="2.5" opacity="0.25" transform="rotate(-35 55 55)"/>
+              <ellipse cx="55" cy="55" rx="32" ry="11" stroke="white" strokeWidth="2.5" opacity="0.25" transform="rotate(35 55 55)"/>
+              <ellipse cx="55" cy="55" rx="32" ry="11" stroke="white" strokeWidth="2.5" opacity="0.25" transform="rotate(90 55 55)"/>
+              <circle cx="55" cy="23" r="6" fill="white" opacity="0.95"/>
+              <circle cx="83" cy="71" r="5.5" fill="white" opacity="0.85"/>
+              <circle cx="27" cy="71" r="5" fill="white" opacity="0.75"/>
+              <circle cx="55" cy="55" r="8" fill="white" opacity="0.95"/>
+              <circle cx="55" cy="55" r="3.5" fill="#6366f1"/>
             </svg>
             <span className="font-semibold text-slate-600 dark:text-slate-400 text-xs tracking-tight">AgentQA</span>
           </span>
