@@ -52,7 +52,7 @@ src/agentqa/
 ├── viewer/               # Prebuilt single-file HTML (from `frontend/` via npm run build)
 └── pytest_plugin.py      # pytest integration (scenario discovery)
 frontend/                 # Vite + React trace viewer (not installed with pip; dev-only build)
-docs/                     # GitHub Pages: index.html (full guide + iframe demo), viewer.html (React bundle), .nojekyll
+docs/                     # GitHub Pages: index.html (full guide + link to demo), viewer.html (React bundle), .nojekyll
 ```
 
 ## Coding Conventions

@@ -4,7 +4,7 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>AgentQA — User guide &amp; live demo</title>
-<meta name="description" content="AgentQA documentation: install, agentqa init, scenarios, property checkers, and embedded trace viewer demo (same UI as agentqa view).">
+<meta name="description" content="AgentQA documentation: install, agentqa init, scenarios, property checkers, and link to the live trace viewer demo (same UI as agentqa view).">
 <style>
 /* ─── Reset & Base ─── */
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -250,22 +250,21 @@ html.dark .yaml-preview { border: 1px solid var(--slate-700); }
   .checker-table { display: block; overflow-x: auto; }
 }
 
-/* Embedded trace viewer (same bundle as agentqa view; sample data when opened here) */
-.viewer-embed-section { scroll-margin-top: 80px; }
-.viewer-embed-shell {
+/* Trace viewer demo (link only — opens viewer.html) */
+.viewer-demo-section { scroll-margin-top: 80px; }
+.viewer-demo-card {
   background: var(--bg-card); border: 1px solid var(--border); border-radius: 16px;
-  overflow: hidden; box-shadow: var(--shadow-lg);
+  padding: 24px 28px; box-shadow: var(--shadow-lg);
 }
-.viewer-embed-head {
-  padding: 14px 20px; border-bottom: 1px solid var(--border);
-  display: flex; align-items: center; justify-content: space-between; flex-wrap: wrap; gap: 12px;
+.viewer-demo-card h2 { font-size: 1.05rem; font-weight: 600; margin: 0 0 10px; letter-spacing: -0.02em; }
+.viewer-demo-card p { font-size: 14px; color: var(--text-secondary); margin: 0 0 18px; max-width: 42rem; line-height: 1.6; }
+.viewer-demo-card a.demo-link {
+  display: inline-flex; align-items: center; gap: 8px;
+  font-size: 14px; font-weight: 600; color: #fff; background: var(--indigo);
+  text-decoration: none; padding: 12px 22px; border-radius: 12px;
+  transition: filter 150ms, transform 150ms;
 }
-.viewer-embed-head h2 { font-size: 1.05rem; font-weight: 600; margin: 0; letter-spacing: -0.02em; }
-.viewer-embed-head p { font-size: 13px; color: var(--text-secondary); margin: 0; max-width: 42rem; line-height: 1.5; }
-.viewer-embed-head a { font-size: 13px; color: var(--indigo); font-weight: 500; text-decoration: none; white-space: nowrap; }
-.viewer-embed-head a:hover { text-decoration: underline; }
-.viewer-embed-frame { width: 100%; min-height: 720px; border: 0; display: block; background: #020617; }
-@media (max-width: 768px) { .viewer-embed-frame { min-height: 560px; } }
+.viewer-demo-card a.demo-link:hover { filter: brightness(1.08); transform: translateY(-1px); }
 </style>
 </head>
 <body>
@@ -311,24 +310,22 @@ html.dark .yaml-preview { border: 1px solid var(--slate-700); }
     <div class="animate-in delay-4" style="margin-top:20px">
       <a href="#viewer-demo" class="nav-link" style="display:inline-flex;align-items:center;gap:6px;font-size:13px;color:var(--indigo);font-weight:500;text-decoration:none;padding:8px 18px;border-radius:10px;border:1px solid var(--indigo);transition:all 150ms;">
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="5 3 19 12 5 21 5 3"/></svg>
-        Jump to embedded trace viewer
+        Jump to trace viewer demo
       </a>
     </div>
   </div>
 </section>
 
-<!-- ─── Embedded trace viewer (same React app as agentqa view) ─── -->
-<section class="section viewer-embed-section" id="viewer-demo" aria-labelledby="viewer-demo-title">
+<!-- ─── Trace viewer demo (opens viewer.html) ─── -->
+<section class="section viewer-demo-section" id="viewer-demo" aria-labelledby="viewer-demo-title">
   <div class="container">
-    <div class="viewer-embed-shell">
-      <div class="viewer-embed-head">
-        <div>
-          <h2 id="viewer-demo-title">Live trace viewer</h2>
-          <p>This is the same single-file viewer shipped with <code>agentqa view</code> and <code>--view</code>, running here with built-in sample data. Use Spotlight, Constellation, and Timeline; replay with keyboard (<kbd>Space</kbd>, arrows, <kbd>Home</kbd> / <kbd>End</kbd>).</p>
-        </div>
-        <a href="viewer.html" target="_blank" rel="noopener">Open full page ↗</a>
-      </div>
-      <iframe class="viewer-embed-frame" src="viewer.html" title="AgentQA trace viewer demo" loading="lazy"></iframe>
+    <div class="viewer-demo-card">
+      <h2 id="viewer-demo-title">Live trace viewer</h2>
+      <p>Same single-file React app as <code>agentqa view</code> and <code>--view</code>, with built-in sample data on GitHub Pages. Spotlight, Constellation, and Timeline; keyboard: <kbd>Space</kbd>, arrows, <kbd>Home</kbd> / <kbd>End</kbd>.</p>
+      <a class="demo-link" href="viewer.html">
+        <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="5 3 19 12 5 21 5 3"/></svg>
+        Open trace viewer demo
+      </a>
     </div>
   </div>
 </section>
@@ -379,7 +376,7 @@ html.dark .yaml-preview { border: 1px solid var(--slate-700); }
         <div class="step-number" style="background:var(--purple)">3</div>
         <div class="step-content">
           <h3>Explore in the trace viewer</h3>
-          <p>The <code>--view</code> flag opens an interactive HTML viewer in your browser. Three viewing modes — Spotlight (cinematic replay), Constellation (agent graph), and Timeline (swimlane) — let you inspect every message, fault, and property check. <a href="#viewer-demo" style="color:var(--indigo);font-weight:500;text-decoration:underline;text-underline-offset:2px;">Try the embedded demo above →</a></p>
+          <p>The <code>--view</code> flag opens an interactive HTML viewer in your browser. Three viewing modes — Spotlight (cinematic replay), Constellation (agent graph), and Timeline (swimlane) — let you inspect every message, fault, and property check. <a href="#viewer-demo" style="color:var(--indigo);font-weight:500;text-decoration:underline;text-underline-offset:2px;">Trace viewer demo link →</a></p>
           <div class="cmd-block"><span class="comment"># View a previously saved trace</span>
 <span class="prompt">$</span> <span class="cmd">agentqa view</span> <span class="string">.agentqa/traces/run_1.jsonl</span>
 
@@ -895,7 +892,7 @@ agents = {
   <div class="container">
     <p>AgentQA v0.6 — Multi-agent interaction testing framework</p>
     <p style="margin-top:4px">Research-informed: MAST (NeurIPS 2025) · MAESTRO (arXiv 2601.00481) · MARBLE (ACL 2025)</p>
-    <p style="margin-top:12px"><a href="#viewer-demo" style="color:var(--indigo);font-size:13px;text-decoration:none;font-weight:500;">Jump to live trace viewer demo →</a></p>
+    <p style="margin-top:12px"><a href="#viewer-demo" style="color:var(--indigo);font-size:13px;text-decoration:none;font-weight:500;">Trace viewer demo link →</a></p>
   </div>
 </footer>
 
