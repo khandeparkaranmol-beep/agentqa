@@ -10,8 +10,7 @@ pip install agentqa
 
 ## Documentation
 
-- **User guide & landing** — static site in [`docs/`](docs/) (publish with GitHub Pages from the `docs/` folder; include [`.nojekyll`](docs/.nojekyll) so Jekyll does not strip assets). Maintainer map of every file: [`docs/README.md`](docs/README.md).
-- **Interactive UI demo** — [`docs/viewer.html`](docs/viewer.html): same viewer app as exports, preloaded with **synthetic sample data** when no trace is embedded (see [Trace viewer vs demo](#trace-viewer-vs-demo) below).
+- **GitHub Pages site** — folder [`docs/`](docs/): [`index.html`](docs/index.html) (short landing), [`guide.html`](docs/guide.html) (full user guide), [`viewer.html`](docs/viewer.html) (React trace viewer + sample data). Optional static preview: [`demo-viewer.html`](docs/demo-viewer.html). Maintainer map: [`docs/README.md`](docs/README.md). Include [`.nojekyll`](docs/.nojekyll) when publishing.
 
 ## Bootstrap from your codebase (`agentqa init`)
 
@@ -101,9 +100,10 @@ You get **one React viewer** (built from [`frontend/`](frontend/); bundled as [`
 | Where | Data |
 |--------|------|
 | **`agentqa view trace.jsonl`**, **`agentqa run … --view`**, **`agentqa export … --format html`** | Your trace is injected as `window.__AGENTQA_DATA__` in the HTML file. |
-| **[`docs/viewer.html`](docs/viewer.html)** (GitHub Pages “demo”) | No embedded trace: the app uses **built-in sample data** from the bundle so visitors can explore Spotlight, Constellation, Timeline, filters, and replay without installing anything. |
+| **[`docs/viewer.html`](docs/viewer.html)** (GitHub Pages) | Same React bundle with **no** embedded trace → **built-in sample data** in the bundle (try the product UI without installing). |
+| **[`docs/demo-viewer.html`](docs/demo-viewer.html)** | Separate **static** lightweight preview page; use **`viewer.html`** for the exact file we ship with the CLI. |
 
-So: **same UI** — **demo** = sample story in the static page; **viewer** = that UI bound to **your** JSONL export.
+So: **same shipped UI** as in `viewer.html` / exports — your runs inject real trace JSON; the Pages **`viewer.html`** uses bundled sample data; **`demo-viewer.html`** is an optional non-React marketing preview.
 
 ## Why AgentQA?
 

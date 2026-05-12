@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>AgentQA — Interactive User Guide</title>
+<title>AgentQA — User guide</title>
 <style>
 /* ─── Reset & Base ─── */
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
@@ -255,12 +255,13 @@ html.dark .yaml-preview { border: 1px solid var(--slate-700); }
 <!-- ─── Header ─── -->
 <header class="header">
   <div class="container header-inner">
-    <a class="logo" href="#">
+    <a class="logo" href="index.html">
       <div class="logo-mark"><svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M9 12l2 2 4-4"/><circle cx="12" cy="12" r="10"/></svg></div>
       <span class="logo-text">AgentQA</span>
       <span class="logo-badge">v0.6</span>
     </a>
     <nav class="header-nav">
+      <a href="index.html" class="nav-link" style="text-decoration:none">Home</a>
       <button class="nav-link active" data-section="quickstart">Quick Start</button>
       <button class="nav-link" data-section="workflow">Workflow</button>
       <button class="nav-link" data-section="properties">Properties</button>
@@ -289,7 +290,7 @@ html.dark .yaml-preview { border: 1px solid var(--slate-700); }
       <span class="prompt">$</span> pip install agentqa
     </div>
     <div class="animate-in delay-4" style="margin-top:20px">
-      <a href="demo-viewer.html" class="nav-link" style="display:inline-flex;align-items:center;gap:6px;font-size:13px;color:var(--indigo);font-weight:500;text-decoration:none;padding:8px 18px;border-radius:10px;border:1px solid var(--indigo);transition:all 150ms;">
+      <a href="viewer.html" class="nav-link" style="display:inline-flex;align-items:center;gap:6px;font-size:13px;color:var(--indigo);font-weight:500;text-decoration:none;padding:8px 18px;border-radius:10px;border:1px solid var(--indigo);transition:all 150ms;">
         <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><polygon points="5 3 19 12 5 21 5 3"/></svg>
         See the live trace viewer demo
       </a>
@@ -343,7 +344,7 @@ html.dark .yaml-preview { border: 1px solid var(--slate-700); }
         <div class="step-number" style="background:var(--purple)">3</div>
         <div class="step-content">
           <h3>Explore in the trace viewer</h3>
-          <p>The <code>--view</code> flag opens an interactive HTML viewer in your browser. Three viewing modes — Spotlight (cinematic replay), Constellation (agent graph), and Timeline (swimlane) — let you inspect every message, fault, and property check. <a href="demo-viewer.html" style="color:var(--indigo);font-weight:500;text-decoration:underline;text-underline-offset:2px;">Try the live demo →</a></p>
+          <p>The <code>--view</code> flag opens an interactive HTML viewer in your browser. Three viewing modes — Spotlight (cinematic replay), Constellation (agent graph), and Timeline (swimlane) — let you inspect every message, fault, and property check. <a href="viewer.html" style="color:var(--indigo);font-weight:500;text-decoration:underline;text-underline-offset:2px;">Try the live demo →</a></p>
           <div class="cmd-block"><span class="comment"># View a previously saved trace</span>
 <span class="prompt">$</span> <span class="cmd">agentqa view</span> <span class="string">.agentqa/traces/run_1.jsonl</span>
 
@@ -367,33 +368,33 @@ html.dark .yaml-preview { border: 1px solid var(--slate-700); }
       <p>Agents never call each other directly. All communication routes through the engine, which records every message, applies faults, and runs property checks.</p>
     </div>
 
-    <div class="flow-container">
-      <div class="flow-node active" style="animation-delay:0s; border-color:var(--indigo);">
+    <div class="flow-container" style="flex-wrap:nowrap; overflow-x:auto; justify-content:center;">
+      <div class="flow-node active" style="animation-delay:0s; border-color:var(--indigo); min-width:100px; padding:14px 16px;">
         <div class="flow-node-label" style="color:var(--indigo)">scenario.yaml</div>
         <div class="flow-node-sub">Declarative config</div>
       </div>
       <div class="flow-arrow">→</div>
-      <div class="flow-node" style="animation-delay:0.5s">
+      <div class="flow-node" style="animation-delay:0.5s; min-width:100px; padding:14px 16px;">
         <div class="flow-node-label">Engine</div>
-        <div class="flow-node-sub">Round-robin orchestration</div>
+        <div class="flow-node-sub">Orchestration</div>
       </div>
       <div class="flow-arrow">→</div>
-      <div class="flow-node" style="animation-delay:1s">
+      <div class="flow-node" style="animation-delay:1s; min-width:100px; padding:14px 16px;">
         <div class="flow-node-label" style="color:var(--red)">Faults</div>
         <div class="flow-node-sub">Intercept &amp; modify</div>
       </div>
       <div class="flow-arrow">→</div>
-      <div class="flow-node" style="animation-delay:1.5s">
+      <div class="flow-node" style="animation-delay:1.5s; min-width:100px; padding:14px 16px;">
         <div class="flow-node-label" style="color:var(--emerald)">Agents</div>
         <div class="flow-node-sub">Your real code</div>
       </div>
       <div class="flow-arrow">→</div>
-      <div class="flow-node" style="animation-delay:2s">
+      <div class="flow-node" style="animation-delay:2s; min-width:100px; padding:14px 16px;">
         <div class="flow-node-label" style="color:var(--purple)">Trace</div>
         <div class="flow-node-sub">JSONL event log</div>
       </div>
       <div class="flow-arrow">→</div>
-      <div class="flow-node active" style="animation-delay:2.5s; border-color:var(--amber);">
+      <div class="flow-node active" style="animation-delay:2.5s; border-color:var(--amber); min-width:100px; padding:14px 16px;">
         <div class="flow-node-label" style="color:var(--amber)">Checks</div>
         <div class="flow-node-sub">16 property checkers</div>
       </div>
@@ -859,7 +860,7 @@ agents = {
   <div class="container">
     <p>AgentQA v0.6 — Multi-agent interaction testing framework</p>
     <p style="margin-top:4px">Research-informed: MAST (NeurIPS 2025) · MAESTRO (arXiv 2601.00481) · MARBLE (ACL 2025)</p>
-    <p style="margin-top:12px"><a href="demo-viewer.html" style="color:var(--indigo);font-size:13px;text-decoration:none;font-weight:500;">Open the interactive trace viewer demo →</a></p>
+    <p style="margin-top:12px"><a href="viewer.html" style="color:var(--indigo);font-size:13px;text-decoration:none;font-weight:500;">Open the interactive trace viewer demo →</a></p>
   </div>
 </footer>
 
