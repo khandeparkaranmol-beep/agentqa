@@ -1,25 +1,20 @@
-# `docs/` — site map (GitHub Pages)
+# `docs/` — GitHub Pages site
 
-Publish this **entire folder** as the GitHub Pages root (`/docs` on `main`). Keep **`.nojekyll`** committed.
+Publish this **folder** as the GitHub Pages root (`/docs` on `main`). Keep **`.nojekyll`**.
 
-## Files and roles
+## Layout
 
-| File | Role |
-|------|------|
-| **`index.html`** | **Landing only** — short pitch, links to the guide and viewer. Canonical URL for “share AgentQA on the web.” |
-| **`guide.html`** | **Full interactive user guide** — install, `agentqa init`, workflow, properties, faults, CLI, frameworks. |
-| **`viewer.html`** | **Production trace viewer** — same single-file React app as `agentqa view` / `export_html`, with built-in sample data when no trace is embedded. |
-| **`.nojekyll`** | Tells GitHub Pages not to run Jekyll. |
+| File | Purpose |
+|------|---------|
+| **`index.html`** | **Canonical documentation** — full interactive user guide **plus** an embedded `<iframe src="viewer.html">` so the trace viewer demo lives on the same page. This is the default URL for the site. |
+| **`viewer.html`** | Single-file **React** trace viewer (same artifact as `agentqa view`). Loaded inside `index.html` via iframe; also openable in its own tab (“Open full page”). |
+| **`.nojekyll`** | Disables Jekyll on GitHub Pages. |
 
-There is no `guide/index.html` in this layout: everything is **flat** under `docs/` so links stay simple.
+There is no separate lightweight landing or `guide.html` — one page is the guide.
 
-## What to send users
+## Rebuild the embedded viewer
 
-1. **Default:** site root → `index.html`
-2. **Deep link “how to”:** `guide.html`
-3. **“Show me the UI”:** `viewer.html` (matches `pip install` + README)
-
-## After changing the React viewer
+After UI changes in `frontend/`:
 
 ```bash
 cd frontend && npm ci && npm run build
