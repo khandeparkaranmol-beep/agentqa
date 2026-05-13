@@ -4,11 +4,11 @@ import json
 import tempfile
 from pathlib import Path
 
-import agentqa.properties  # noqa: F401
+import riftcheck.properties  # noqa: F401
 
-from agentqa.scenario import AgentConfig, MilestoneConfig, PropertyConfig, ScenarioConfig
-from agentqa.trace import Trace, TraceEvent
-from agentqa.topology import classify_topology, topology_summary
+from riftcheck.scenario import AgentConfig, MilestoneConfig, PropertyConfig, ScenarioConfig
+from riftcheck.trace import Trace, TraceEvent
+from riftcheck.topology import classify_topology, topology_summary
 
 
 def _msg(sender: str, receiver: str, content: str, turn: int = 1) -> TraceEvent:
@@ -22,8 +22,8 @@ def _msg(sender: str, receiver: str, content: str, turn: int = 1) -> TraceEvent:
 
 class TestMilestoneTracking:
     def _run_with_milestones(self, milestones: list[MilestoneConfig]) -> Trace:
-        from agentqa.adapters.raw import RawAgent
-        from agentqa.engine import SimulationEngine
+        from riftcheck.adapters.raw import RawAgent
+        from riftcheck.engine import SimulationEngine
 
         scenario = ScenarioConfig(
             name="milestone-test",
@@ -86,8 +86,8 @@ class TestMilestoneTracking:
         assert ms_events["milestone:b_validates"] is False  # b never says "data validated"
 
     def test_summarize_includes_milestone_stats(self) -> None:
-        from agentqa.adapters.raw import RawAgent
-        from agentqa.engine import SimulationEngine
+        from riftcheck.adapters.raw import RawAgent
+        from riftcheck.engine import SimulationEngine
 
         scenario = ScenarioConfig(
             name="ms-summary",
@@ -153,8 +153,8 @@ class TestTopologyClassification:
         assert summary["topology"] == "chain"
 
     def test_summarize_includes_topology(self) -> None:
-        from agentqa.adapters.raw import RawAgent
-        from agentqa.engine import SimulationEngine
+        from riftcheck.adapters.raw import RawAgent
+        from riftcheck.engine import SimulationEngine
 
         scenario = ScenarioConfig(
             name="topo-test",
@@ -181,7 +181,7 @@ class TestExport:
         return trace
 
     def test_mast_export_produces_valid_jsonl(self) -> None:
-        from agentqa.export import export_mast
+        from riftcheck.export import export_mast
 
         trace = self._make_trace()
         with tempfile.NamedTemporaryFile(suffix=".jsonl", delete=False) as f:
@@ -198,7 +198,7 @@ class TestExport:
             path.unlink(missing_ok=True)
 
     def test_mast_export_header_has_topology(self) -> None:
-        from agentqa.export import export_mast
+        from riftcheck.export import export_mast
 
         trace = self._make_trace()
         with tempfile.NamedTemporaryFile(suffix=".jsonl", delete=False) as f:
@@ -212,7 +212,7 @@ class TestExport:
             path.unlink(missing_ok=True)
 
     def test_html_export_produces_valid_html(self) -> None:
-        from agentqa.export import export_html
+        from riftcheck.export import export_html
 
         trace = self._make_trace()
         with tempfile.NamedTemporaryFile(suffix=".html", delete=False) as f:
@@ -228,8 +228,8 @@ class TestExport:
             path.unlink(missing_ok=True)
 
     def test_html_export_includes_property_results(self) -> None:
-        from agentqa.export import export_html
-        from agentqa.properties.base import PropertyResult
+        from riftcheck.export import export_html
+        from riftcheck.properties.base import PropertyResult
 
         trace = self._make_trace()
         trace.results.append(PropertyResult(

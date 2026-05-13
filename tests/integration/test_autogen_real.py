@@ -3,7 +3,7 @@
 Verifies that:
   1. An AG2 AssistantAgent can be constructed with Claude as the LLM
   2. AutoGenAgent adapter wraps it correctly
-  3. AgentQA engine can run a scenario with real AutoGen agents
+  3. Riftcheck engine can run a scenario with real AutoGen agents
   4. Trace contains non-empty, substantive LLM responses
 
 Run: ANTHROPIC_API_KEY=sk-... python -m pytest tests/integration/test_autogen_real.py -v -s
@@ -14,7 +14,7 @@ from __future__ import annotations
 
 import pytest
 
-from agentqa.agent import Message
+from riftcheck.agent import Message
 
 
 @pytest.fixture
@@ -55,7 +55,7 @@ class TestAutoGenRealAgent:
 
     def test_single_message(self, anthropic_api_key, autogen_available):
         """Send one message through a real AutoGen agent and verify response."""
-        from agentqa.adapters.autogen import AutoGenAgent
+        from riftcheck.adapters.autogen import AutoGenAgent
 
         ag_agent = _make_autogen_agent(
             "researcher",
@@ -80,10 +80,10 @@ class TestAutoGenRealAgent:
         assert state["message_count"] == 1
 
     def test_two_agent_scenario(self, anthropic_api_key, autogen_available):
-        """Run a 2-agent, 4-turn scenario through the AgentQA engine."""
-        from agentqa.adapters.autogen import AutoGenAgent
-        from agentqa.engine import SimulationEngine
-        from agentqa.scenario import AgentConfig, ScenarioConfig
+        """Run a 2-agent, 4-turn scenario through the Riftcheck engine."""
+        from riftcheck.adapters.autogen import AutoGenAgent
+        from riftcheck.engine import SimulationEngine
+        from riftcheck.scenario import AgentConfig, ScenarioConfig
 
         researcher = AutoGenAgent(
             "researcher",

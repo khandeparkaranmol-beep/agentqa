@@ -6,9 +6,9 @@ from pathlib import Path
 
 import pytest
 
-from agentqa.agent import Message, Response
-from agentqa.scenario import AgentConfig, FaultConfig, PropertyConfig, ScenarioConfig, load_scenario
-from agentqa.trace import Trace, TraceEvent
+from riftcheck.agent import Message, Response
+from riftcheck.scenario import AgentConfig, FaultConfig, PropertyConfig, ScenarioConfig, load_scenario
+from riftcheck.trace import Trace, TraceEvent
 
 
 def test_message_roundtrip() -> None:

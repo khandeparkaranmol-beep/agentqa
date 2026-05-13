@@ -3,6 +3,7 @@ __pycache__/
 *.py[cod]
 *$py.class
 *.egg-info/
+src/*.egg-info/
 dist/
 *.egg
 .eggs/
@@ -11,7 +12,7 @@ dist/
 *.so
 *.pyd
 *.c
-!src/agentqa/**/__init__.py
+!src/riftcheck/**/__init__.py
 wheelhouse/
 
 # Python build artifacts under build/ (project docs in build/*.md stay tracked)
@@ -37,8 +38,8 @@ ENV/
 pypi-token
 .pypi-token
 
-# AgentQA traces
-.agentqa/
+# Riftcheck traces
+.riftcheck/
 
 # OS
 .DS_Store

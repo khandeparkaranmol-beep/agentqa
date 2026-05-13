@@ -3,16 +3,16 @@ from __future__ import annotations
 import tempfile
 from pathlib import Path
 
-import agentqa.faults  # noqa: F401 — register all faults
-import agentqa.properties  # noqa: F401 — register all checkers
+import riftcheck.faults  # noqa: F401 — register all faults
+import riftcheck.properties  # noqa: F401 — register all checkers
 
-from agentqa.faults.base import registry as fault_registry
-from agentqa.faults.contradictory import ContradictoryFault
-from agentqa.faults.hallucination import HallucinationFault
-from agentqa.agent import Message
-from agentqa.properties.base import registry as prop_registry
-from agentqa.scenario import AgentConfig, ScenarioConfig
-from agentqa.trace import Trace, TraceEvent
+from riftcheck.faults.base import registry as fault_registry
+from riftcheck.faults.contradictory import ContradictoryFault
+from riftcheck.faults.hallucination import HallucinationFault
+from riftcheck.agent import Message
+from riftcheck.properties.base import registry as prop_registry
+from riftcheck.scenario import AgentConfig, ScenarioConfig
+from riftcheck.trace import Trace, TraceEvent
 
 
 def _make_msg(content: str = "hello") -> Message:
@@ -137,8 +137,8 @@ class TestTraceSnapshot:
 
 class TestReplayEngine:
     def test_replay_runs_assertions_against_saved_trace(self) -> None:
-        from agentqa.replay import ReplayEngine
-        from agentqa.scenario import PropertyConfig
+        from riftcheck.replay import ReplayEngine
+        from riftcheck.scenario import PropertyConfig
 
         trace = Trace()
         trace.add_event(_msg_event("coordinator", "executor", "task_id: 42 — begin", turn=0))
@@ -168,8 +168,8 @@ class TestReplayEngine:
             path.unlink(missing_ok=True)
 
     def test_replay_up_to_turn_restricts_events(self) -> None:
-        from agentqa.replay import ReplayEngine
-        from agentqa.scenario import PropertyConfig
+        from riftcheck.replay import ReplayEngine
+        from riftcheck.scenario import PropertyConfig
 
         trace = Trace()
         trace.add_event(_msg_event("coordinator", "executor", "task_id: 42 — begin", turn=0))

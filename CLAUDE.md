@@ -1,15 +1,15 @@
-# AgentQA — Project Rules for Claude Code
+# Riftcheck — Project Rules for Claude Code
 
 ## What This Is
 
-AgentQA is a multi-agent interaction testing framework. It lets developers simulate how their AI agents interact under adversarial scenarios before deploying — catching deadlocks, information leaks, cascading failures, and role violations in a test suite instead of in production.
+Riftcheck is a multi-agent interaction testing framework. It lets developers simulate how their AI agents interact under adversarial scenarios before deploying — catching deadlocks, information leaks, cascading failures, and role violations in a test suite instead of in production.
 
 This is a Python library + CLI tool. It is NOT a web app, NOT a SaaS, NOT an observability platform. It runs entirely on the developer's machine.
 
 ## Stack
 
 - **Language:** Python 3.10+ (type hints required everywhere)
-- **Package format:** PyPI package, installed via `pip install agentqa`
+- **Package format:** PyPI package, installed via `pip install riftcheck`
 - **Build system:** pyproject.toml (PEP 621), no setup.py
 - **Testing:** pytest (we also ship a pytest plugin)
 - **Config format:** YAML for scenario files, parsed with PyYAML
@@ -20,7 +20,7 @@ This is a Python library + CLI tool. It is NOT a web app, NOT a SaaS, NOT an obs
 ## Project Structure
 
 ```
-src/agentqa/
+src/riftcheck/
 ├── __init__.py           # Version
 ├── cli.py                # Click CLI: run, view, diff, dashboard, export, replay, init
 ├── engine.py             # Simulation engine (core runtime)
@@ -30,9 +30,9 @@ src/agentqa/
 ├── display.py            # CLI trace / summary printing
 ├── export.py             # HTML viewer (React bundle + data inject), MAST export, diff, dashboard
 ├── replay.py             # Replay property checks from JSONL + scenario YAML
-├── scaffold.py           # scenario.yaml + agents.py generation for `agentqa init`
+├── scaffold.py           # scenario.yaml + agents.py generation for `riftcheck init`
 ├── topology.py           # Topology summary from traces
-├── scanner/              # AST scanners for `agentqa init` (CrewAI, LangGraph, AutoGen)
+├── scanner/              # AST scanners for `riftcheck init` (CrewAI, LangGraph, AutoGen)
 │   ├── detect.py         # Orchestration + framework detection
 │   ├── base.py           # ScanResult, FrameworkScanner
 │   ├── crewai.py
@@ -63,7 +63,7 @@ docs/                     # GitHub Pages: index.html (full guide + link to demo)
 - **Pydantic models for all data structures** that cross module boundaries (scenarios, trace events, property results).
 - **Abstract base classes** for extension points: `AgentUnderTest`, `PropertyChecker`, `FaultInjector`.
 - **No print statements for user output.** Use the `logging` module for debug/info, and structured output functions for CLI display.
-- **Imports:** Standard library first, third-party second, local third. Absolute imports only (`from agentqa.engine import ...`, never relative).
+- **Imports:** Standard library first, third-party second, local third. Absolute imports only (`from riftcheck.engine import ...`, never relative).
 
 ## Architectural Rules
 
@@ -71,7 +71,7 @@ docs/                     # GitHub Pages: index.html (full guide + link to demo)
 - **Property checkers are stateless.** They receive a complete `Trace` and return a `PropertyResult`. They do not modify state.
 - **The simulation engine owns the event loop.** Agents do not call each other directly. All communication goes through the engine, which records every message to the trace.
 - **Scenarios are declarative data, not code.** The YAML scenario file describes WHAT to test. The engine decides HOW to execute it.
-- **No LLM calls in the framework itself.** AgentQA orchestrates the developer's agents (which may use LLMs). AgentQA's own code is deterministic. `agentqa init` uses AST scanning (not an LLM) to scaffold tests from existing code. Optional LLM-assisted scenario authoring remains a separate product direction.
+- **No LLM calls in the framework itself.** Riftcheck orchestrates the developer's agents (which may use LLMs). Riftcheck's own code is deterministic. `riftcheck init` uses AST scanning (not an LLM) to scaffold tests from existing code. Optional LLM-assisted scenario authoring remains a separate product direction.
 - **Fault injection happens at the engine level**, between message send and receive. Faults never modify agent internals — they modify what the agent sees.
 - **Multi-run is default.** The engine always runs scenarios N times (default 5) and reports statistics. Never report a single pass/fail.
 
@@ -122,10 +122,10 @@ ScenarioConfig:
 ## Testing This Project
 
 - Run tests: `pytest tests/`
-- Run a scenario: `agentqa run examples/negotiation/scenario.yaml`
-- Run with multiple iterations: `agentqa run examples/negotiation/scenario.yaml --runs 10`
+- Run a scenario: `riftcheck run examples/negotiation/scenario.yaml`
+- Run with multiple iterations: `riftcheck run examples/negotiation/scenario.yaml --runs 10`
 - Install in dev mode: `pip install -e ".[dev]"`
-- Rebuild the HTML viewer template after UI changes: `cd frontend && npm ci && npm run build` (outputs to `src/agentqa/viewer/index.html`)
+- Rebuild the HTML viewer template after UI changes: `cd frontend && npm ci && npm run build` (outputs to `src/riftcheck/viewer/index.html`)
 - Integration tests (real LLM, optional): see `tests/integration/README.md`
 
 ## Research Context

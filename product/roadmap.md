@@ -1,4 +1,4 @@
-# AgentQA — Product Roadmap
+# Riftcheck — Product Roadmap
 
 *Every feature is justified by research data, GitHub signal mining, or first-principles reasoning. Nothing is here because it "seems nice to have."*
 
@@ -33,7 +33,7 @@ Three principles govern what ships when:
 
 **Theme:** A developer can test multi-agent interactions from their terminal.
 
-**Why this scope:** The smallest thing that delivers value nobody else offers. Every existing tool (LangSmith, Maxim, LangWatch) tests individual agents. AgentQA v0.1 is the first tool that tests agent-to-agent interactions. That's the wedge.
+**Why this scope:** The smallest thing that delivers value nobody else offers. Every existing tool (LangSmith, Maxim, LangWatch) tests individual agents. Riftcheck v0.1 is the first tool that tests agent-to-agent interactions. That's the wedge.
 
 ### Features
 
@@ -43,16 +43,16 @@ Three principles govern what ships when:
 | Scenario DSL | YAML-based declarative test scenarios | Makes test writing accessible. Diffable in git. Non-engineers can read them. |
 | Simulation engine | Orchestrates agents, manages turns, injects faults, records traces | The core product. Everything else is built around it. |
 | Property checkers (5) | `no_information_leak`, `converges_within`, `no_deadlock`, `role_boundary`, `output_schema` | Covers the most common production bugs from GitHub signal mining. |
-| CLI + pytest plugin | `agentqa run` + pytest test discovery | Zero-friction integration into existing developer workflow. |
+| CLI + pytest plugin | `riftcheck run` + pytest test discovery | Zero-friction integration into existing developer workflow. |
 | Trace output | JSONL machine-readable + human-readable terminal output | Developers need to SEE what went wrong. |
 
 ### MAST Coverage
 
 | Checker | MAST Failure Modes Addressed | Combined Frequency |
 |---|---|---|
-| `no_information_leak` | Not in MAST (security concern, from GitHub signals) | N/A — unique to AgentQA |
+| `no_information_leak` | Not in MAST (security concern, from GitHub signals) | N/A — unique to Riftcheck |
 | `converges_within` | FM-1.3 Step repetition (partial), FM-1.5 Unaware of termination (partial) | 19.4% partial |
-| `no_deadlock` | Not in MAST (liveness concern, from GitHub signals) | N/A — unique to AgentQA |
+| `no_deadlock` | Not in MAST (liveness concern, from GitHub signals) | N/A — unique to Riftcheck |
 | `role_boundary` | FM-1.2 Disobey role specification | 1.5% direct |
 | `output_schema` | FM-1.1 Disobey task spec (partial), FM-3.2 Incomplete verification, FM-3.3 Incorrect verification | 29.7% (14% partial, 15.7% direct) |
 
@@ -65,7 +65,7 @@ Three principles govern what ships when:
 | LangGraph | Week 3 | Second most popular. Different architecture (graph-based vs role-based). |
 
 ### Success Criteria
-- A CrewAI or LangGraph developer can `pip install agentqa`, write a YAML scenario in 5 minutes, and catch a coordination bug they didn't know they had.
+- A CrewAI or LangGraph developer can `pip install riftcheck`, write a YAML scenario in 5 minutes, and catch a coordination bug they didn't know they had.
 
 ---
 
@@ -73,7 +73,7 @@ Three principles govern what ships when:
 
 **Theme:** Catch information flow failures — the #3 most common multi-agent failure mode.
 
-**Why now:** MAST's FM-2.4 (information withholding, 12.4%) and FM-1.4 (loss of conversation history, 8.2%) are the highest-frequency gaps after v0.1. These are inter-agent communication failures — exactly the category AgentQA is built to detect.
+**Why now:** MAST's FM-2.4 (information withholding, 12.4%) and FM-1.4 (loss of conversation history, 8.2%) are the highest-frequency gaps after v0.1. These are inter-agent communication failures — exactly the category Riftcheck is built to detect.
 
 ### New Property Checkers
 
@@ -159,12 +159,12 @@ Three principles govern what ships when:
 |---|---|
 | **Milestone-based metrics** | Inspired by MARBLE's KPI system. Track intermediate progress, not just final outcome. "Agent A completed 3/5 milestones before deadlocking" is more useful than "test failed." |
 | **Topology-aware reporting** | Report results grouped by communication topology (star, chain, tree, graph). Automatically classifies the scenario's topology from the interaction trace. |
-| **MAST-compatible trace export** | Export traces in a format compatible with MAST's annotation pipeline. Lets teams who already use MAST's tools analyze AgentQA traces without conversion. |
+| **MAST-compatible trace export** | Export traces in a format compatible with MAST's annotation pipeline. Lets teams who already use MAST's tools analyze Riftcheck traces without conversion. |
 
 ### Success Criteria
 - v0.4 covers ~95% of MAST failure frequency.
 - FM-1.1 (the single most common failure at 15.7%) upgraded from partial to substantive coverage.
-- AgentQA is the most comprehensive multi-agent testing tool available, open-source or commercial.
+- Riftcheck is the most comprehensive multi-agent testing tool available, open-source or commercial.
 
 ---
 
@@ -172,7 +172,7 @@ Three principles govern what ships when:
 
 **Theme:** Make multi-agent interactions visible and beautiful.
 
-**Why now:** By v0.4, the *detection* layer is comprehensive. But detection without understanding is frustrating. The web viewer transforms AgentQA from a CLI tool into an experience — developers can *see* their agents interact, *replay* failures frame by frame, and *share* traces with teammates.
+**Why now:** By v0.4, the *detection* layer is comprehensive. But detection without understanding is frustrating. The web viewer transforms Riftcheck from a CLI tool into an experience — developers can *see* their agents interact, *replay* failures frame by frame, and *share* traces with teammates.
 
 ### Features
 
@@ -199,13 +199,13 @@ The open-source version ships everything above as a local tool. The commercial v
 
 **Theme:** The commercial product that generates revenue.
 
-**Why now:** By v0.5, the open-source tool has (target) 1,000+ stars, an active community, and developers who've integrated AgentQA into their CI pipelines. The commercial layer adds what teams need but individuals don't: collaboration, hosting, and persistence.
+**Why now:** By v0.5, the open-source tool has (target) 1,000+ stars, an active community, and developers who've integrated Riftcheck into their CI pipelines. The commercial layer adds what teams need but individuals don't: collaboration, hosting, and persistence.
 
 ### Commercial Features (Not in Open Source)
 
 | Feature | Pricing Signal | Why Teams Pay |
 |---|---|---|
-| **Hosted CI runner** | Core monetization | "Run your AgentQA suite in our cloud. No GPU provisioning, no API key management, no infrastructure." Teams pay to not deal with infra. |
+| **Hosted CI runner** | Core monetization | "Run your Riftcheck suite in our cloud. No GPU provisioning, no API key management, no infrastructure." Teams pay to not deal with infra. |
 | **Team trace sharing** | Collaboration premium | Traces are shared across the team with role-based access. Comments, annotations, and assignments on specific failures. |
 | **Historical analytics** | Retention hook | Track property violation rates across deploys. "Your information leak rate dropped from 12% to 2% over the last 3 months." Trend data creates switching costs. |
 | **Alerting + notifications** | Ops integration | Slack/email alerts when a property violation rate exceeds a threshold. Integrates with PagerDuty/Opsgenie for on-call workflows. |
@@ -231,8 +231,8 @@ This table shows the full roadmap for covering all 14 MAST failure modes, ordere
 
 | Version | Checker | MAST FM | Frequency | Type |
 |---|---|---|---|---|
-| **v0.1** | `no_information_leak` | — (not in MAST) | — | AgentQA original |
-| **v0.1** | `no_deadlock` | — (not in MAST) | — | AgentQA original |
+| **v0.1** | `no_information_leak` | — (not in MAST) | — | Riftcheck original |
+| **v0.1** | `no_deadlock` | — (not in MAST) | — | Riftcheck original |
 | **v0.1** | `role_boundary` | FM-1.2 | 1.5% | Direct match |
 | **v0.1** | `output_schema` | FM-1.1 (partial), FM-3.2, FM-3.3 | 29.7% | Partial + direct |
 | **v0.1** | `converges_within` | FM-1.3 (partial), FM-1.5 (partial) | 19.4% | Partial |
@@ -247,7 +247,7 @@ This table shows the full roadmap for covering all 14 MAST failure modes, ordere
 | **v0.4** | `asks_for_clarification` | FM-2.2 | 1.9% | Direct match |
 | **v0.4** | `task_specification_compliance` | FM-1.1 (upgrade) | 15.7% | Upgrade to full |
 
-**By v0.4:** All 14 MAST failure modes have dedicated property checkers. Plus 2 original AgentQA checkers (`no_information_leak`, `no_deadlock`) that cover failure modes the academic taxonomy missed.
+**By v0.4:** All 14 MAST failure modes have dedicated property checkers. Plus 2 original Riftcheck checkers (`no_information_leak`, `no_deadlock`) that cover failure modes the academic taxonomy missed.
 
 ---
 
@@ -291,13 +291,13 @@ This roadmap assumes 15-20 hours/week alongside job hunting. Reality will shift 
 1. **v0.1 is non-negotiable.** Ship it in 4 weeks or learn why you can't (which is also valuable).
 2. **v0.2-v0.4 are guided by community feedback.** If users scream for `ensures_information_flow` before `reasoning_action_consistency`, swap the order. MAST frequencies are defaults, not commandments.
 3. **v0.5 timing depends on traction.** If the open-source tool gets <200 stars by month 4, reconsider the commercial path. If it gets >500, accelerate v0.5.
-4. **v1.0 only happens with signal.** Don't build the commercial layer until ≥5 teams are using AgentQA in CI and asking for features that require a hosted service.
+4. **v1.0 only happens with signal.** Don't build the commercial layer until ≥5 teams are using Riftcheck in CI and asking for features that require a hosted service.
 
 ---
 
 ## Citations
 
-This roadmap is informed by the following research. AgentQA cites these in its documentation for credibility and academic goodwill.
+This roadmap is informed by the following research. Riftcheck cites these in its documentation for credibility and academic goodwill.
 
 1. Cemri, Pan, Yang et al. "Why Do Multi-Agent LLM Systems Fail?" NeurIPS 2025. arXiv:2503.13657. — Failure taxonomy (14 modes, 3 categories)
 2. Ma, Chen, Anand et al. "MAESTRO: Multi-Agent Evaluation Suite for Testing, Reliability, and Observability." arXiv:2601.00481. — Statistical evaluation methodology

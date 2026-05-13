@@ -1,23 +1,23 @@
-# AgentQA
+# Riftcheck
 
 **Test multi-agent AI systems before they hit production.**
 
-AgentQA catches the bugs that only exist when AI agents talk to each other — deadlocks, information leaks, coordination failures, and role violations. Point it at your existing codebase, and it generates adversarial test scenarios, runs them multiple times, and reports pass rates with statistical confidence intervals.
+Riftcheck catches the bugs that only exist when AI agents talk to each other — deadlocks, information leaks, coordination failures, and role violations. Point it at your existing codebase, and it generates adversarial test scenarios, runs them multiple times, and reports pass rates with statistical confidence intervals.
 
 ```bash
-pip install agentqa
+pip install riftcheck
 ```
 
-**[Full Guide](https://khandeparkaranmol-beep.github.io/AgentQA/)** · **[Interactive Demo](https://khandeparkaranmol-beep.github.io/AgentQA/viewer.html)**
+**[Full Guide](https://khandeparkaranmol-beep.github.io/Riftcheck/)** · **[Interactive Demo](https://khandeparkaranmol-beep.github.io/Riftcheck/viewer.html)**
 
 ## Get Started in 30 Seconds
 
-If you're using **CrewAI**, **LangGraph**, or **AutoGen**, AgentQA scans your code and generates test scenarios automatically:
+If you're using **CrewAI**, **LangGraph**, or **AutoGen**, Riftcheck scans your code and generates test scenarios automatically:
 
 ```bash
 cd your_project
-agentqa init .
-agentqa run scenario.yaml --view
+riftcheck init .
+riftcheck run scenario.yaml --view
 ```
 
 That's it. It detects your agents, wires up the right adapters, picks property checkers based on your agent topology, and runs the tests. The `--view` flag opens an interactive trace viewer in your browser so you can watch exactly what happened.
@@ -49,7 +49,7 @@ assertions:
 ```
 
 ```bash
-agentqa run scenario.yaml
+riftcheck run scenario.yaml
 ```
 
 ```
@@ -65,7 +65,7 @@ Properties (5 runs, 95% Wilson CI):
 Overall: 1/2 properties passed. FAIL.
 ```
 
-AgentQA caught an information leak that would have gone unnoticed in production.
+Riftcheck caught an information leak that would have gone unnoticed in production.
 
 ## What It Catches
 
@@ -100,10 +100,10 @@ Five fault types: `corrupt`, `drop`, `latency`, `contradictory`, `hallucination`
 
 ## Statistical Testing
 
-Every scenario runs multiple times (default 5, configurable). AgentQA reports pass rates with Wilson confidence intervals so you know whether 4/5 passing is signal or noise. Use `--thorough` for 20 runs when you need tighter confidence.
+Every scenario runs multiple times (default 5, configurable). Riftcheck reports pass rates with Wilson confidence intervals so you know whether 4/5 passing is signal or noise. Use `--thorough` for 20 runs when you need tighter confidence.
 
 ```bash
-agentqa run scenario.yaml --thorough
+riftcheck run scenario.yaml --thorough
 ```
 
 ## Interactive Trace Viewer
@@ -111,39 +111,39 @@ agentqa run scenario.yaml --thorough
 Every test run produces a trace you can explore visually — a single portable HTML file, no server required:
 
 ```bash
-agentqa view trace.jsonl
-agentqa diff a.jsonl b.jsonl          # side-by-side comparison
-agentqa dashboard path/to/traces/     # aggregate view
+riftcheck view trace.jsonl
+riftcheck diff a.jsonl b.jsonl          # side-by-side comparison
+riftcheck dashboard path/to/traces/     # aggregate view
 ```
 
 Three viewing modes: **Spotlight** (cinematic replay), **Constellation** (agent network), **Timeline** (swimlane). Filter by agent, faults, violations, or text search.
 
 ## Framework Support
 
-Works with **CrewAI**, **LangGraph**, **AutoGen**, and any custom Python agent via the `RawAgent` adapter. `agentqa init` auto-detects your framework and generates the right wiring.
+Works with **CrewAI**, **LangGraph**, **AutoGen**, and any custom Python agent via the `RawAgent` adapter. `riftcheck init` auto-detects your framework and generates the right wiring.
 
 ## pytest Integration
 
 ```bash
 pytest tests/           # discovers .yaml scenario files automatically
-pytest --agentqa-only   # run only AgentQA scenarios
+pytest --riftcheck-only   # run only Riftcheck scenarios
 ```
 
 ## CLI Reference
 
 ```bash
-agentqa init [DIR]                    # scan codebase, generate scenario + agents
-agentqa run <path>                    # run scenarios
-agentqa run <path> --thorough --view  # 20 runs + open viewer
-agentqa view <trace.jsonl>            # open trace in viewer
-agentqa diff <a.jsonl> <b.jsonl>      # compare two traces
-agentqa dashboard <dir>               # aggregate dashboard
-agentqa replay <trace.jsonl> --scenario <file>  # re-check properties
+riftcheck init [DIR]                    # scan codebase, generate scenario + agents
+riftcheck run <path>                    # run scenarios
+riftcheck run <path> --thorough --view  # 20 runs + open viewer
+riftcheck view <trace.jsonl>            # open trace in viewer
+riftcheck diff <a.jsonl> <b.jsonl>      # compare two traces
+riftcheck dashboard <dir>               # aggregate dashboard
+riftcheck replay <trace.jsonl> --scenario <file>  # re-check properties
 ```
 
 ## Research
 
-AgentQA's design is informed by peer-reviewed research on multi-agent system failures:
+Riftcheck's design is informed by peer-reviewed research on multi-agent system failures:
 
 - **MAST** (NeurIPS 2025) — multi-agent failure taxonomy mapping to our property checkers
 - **MAESTRO** (arXiv 2601.00481) — multi-run statistical testing methodology

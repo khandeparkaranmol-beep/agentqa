@@ -1,5 +1,5 @@
 # ============================================================================
-# AgentQA — Fault Injection Deep Dive
+# Riftcheck — Fault Injection Deep Dive
 # ============================================================================
 #
 # Fault injection is a first-class feature. Instead of waiting for production
@@ -12,8 +12,8 @@
 # Each fault is explained inline with every configurable parameter.
 #
 # HOW TO RUN:
-#   agentqa run examples/annotated/02_fault_injection.yaml --view
-#   agentqa run examples/annotated/02_fault_injection.yaml --thorough  # 20 runs
+#   riftcheck run examples/annotated/02_fault_injection.yaml --view
+#   riftcheck run examples/annotated/02_fault_injection.yaml --thorough  # 20 runs
 #
 # ============================================================================
 
@@ -57,7 +57,7 @@ setup:
 #   params:   (dict, optional) — fault-specific configuration
 #
 # IMPORTANT: the target must be a name declared in the agents list above.
-# AgentQA validates this at load time and errors if you target a non-existent
+# Riftcheck validates this at load time and errors if you target a non-existent
 # agent.
 #
 # TIMING: Turn numbers follow round-robin order. With 3 agents:

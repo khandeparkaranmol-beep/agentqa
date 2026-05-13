@@ -6,8 +6,8 @@ from pathlib import Path
 
 import pytest
 
-from agentqa.trace import Trace, TraceEvent
-from agentqa.export import export_html, diff_html, dashboard_html
+from riftcheck.trace import Trace, TraceEvent
+from riftcheck.export import export_html, diff_html, dashboard_html
 
 
 # ── helpers ───────────────────────────────────────────────────────────────────
@@ -56,7 +56,7 @@ class TestExportHtml:
         dest = tmp_path / "out.html"
         export_html(trace, dest)
         content = dest.read_text()
-        assert "window.__AGENTQA_DATA__" in content
+        assert "window.__RIFTCHECK_DATA__" in content
 
     def test_mode_is_trace(self, tmp_path: Path) -> None:
         trace = _make_trace()
@@ -88,7 +88,7 @@ class TestExportHtml:
 
     def test_fallback_when_no_template(self, tmp_path: Path, monkeypatch: pytest.MonkeyPatch) -> None:
         """Falls back to minimal HTML when the React bundle is missing."""
-        import agentqa.export as ex
+        import riftcheck.export as ex
         monkeypatch.setattr(ex, "_VIEWER_TEMPLATE", tmp_path / "nonexistent.html")
         trace = _make_trace()
         dest = tmp_path / "fallback.html"
@@ -181,7 +181,7 @@ class TestDashboardHtml:
 class TestCLIView:
     def test_view_creates_html(self, tmp_path: Path) -> None:
         from click.testing import CliRunner
-        from agentqa.cli import main
+        from riftcheck.cli import main
 
         trace = _make_trace()
         jsonl = tmp_path / "run.jsonl"
@@ -194,7 +194,7 @@ class TestCLIView:
 
     def test_view_custom_output(self, tmp_path: Path) -> None:
         from click.testing import CliRunner
-        from agentqa.cli import main
+        from riftcheck.cli import main
 
         trace = _make_trace()
         jsonl = tmp_path / "run.jsonl"
@@ -210,7 +210,7 @@ class TestCLIView:
 class TestCLIDiff:
     def test_diff_creates_html(self, tmp_path: Path) -> None:
         from click.testing import CliRunner
-        from agentqa.cli import main
+        from riftcheck.cli import main
 
         a, b = _make_trace(3), _make_trace(4)
         p_a = tmp_path / "a.jsonl"
@@ -227,7 +227,7 @@ class TestCLIDiff:
 class TestCLIDashboard:
     def test_dashboard_creates_html(self, tmp_path: Path) -> None:
         from click.testing import CliRunner
-        from agentqa.cli import main
+        from riftcheck.cli import main
 
         for name in ("run1", "run2", "run3"):
             _make_trace(3).to_jsonl(tmp_path / f"{name}.jsonl")
@@ -239,7 +239,7 @@ class TestCLIDashboard:
 
     def test_dashboard_fails_on_empty_dir(self, tmp_path: Path) -> None:
         from click.testing import CliRunner
-        from agentqa.cli import main
+        from riftcheck.cli import main
 
         runner = CliRunner()
         result = runner.invoke(main, ["dashboard", str(tmp_path), "--no-open"])

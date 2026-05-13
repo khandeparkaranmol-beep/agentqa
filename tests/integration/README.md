@@ -1,6 +1,6 @@
 # Integration Tests — Real LLM Calls
 
-These tests verify that AgentQA adapters work with **real framework agents making real LLM calls**.
+These tests verify that Riftcheck adapters work with **real framework agents making real LLM calls**.
 They are NOT run in CI — they require API keys and cost money.
 
 ## Setup

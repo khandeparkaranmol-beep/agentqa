@@ -3,7 +3,7 @@
 Verifies that:
   1. ChatAnthropic can be used inside a LangGraph node function
   2. LangGraphNodeAgent adapter correctly handles LangChain message objects
-  3. AgentQA engine can run a scenario with real LangGraph nodes
+  3. Riftcheck engine can run a scenario with real LangGraph nodes
   4. Trace contains non-empty, substantive LLM responses
 
 Run: ANTHROPIC_API_KEY=sk-... python -m pytest tests/integration/test_langgraph_real.py -v -s
@@ -12,7 +12,7 @@ from __future__ import annotations
 
 import pytest
 
-from agentqa.agent import Message
+from riftcheck.agent import Message
 
 
 @pytest.fixture
@@ -67,7 +67,7 @@ class TestLangGraphRealAgent:
 
     def test_single_node_call(self, anthropic_api_key, langgraph_available):
         """Call a single LangGraph node that makes a real Claude call."""
-        from agentqa.adapters.langgraph import LangGraphNodeAgent
+        from riftcheck.adapters.langgraph import LangGraphNodeAgent
 
         researcher = _make_llm_node("You are a research analyst. Give brief, factual answers in 1-2 sentences.")
         wrapped = LangGraphNodeAgent("researcher", researcher)
@@ -87,9 +87,9 @@ class TestLangGraphRealAgent:
 
     def test_two_node_chain(self, anthropic_api_key, langgraph_available):
         """Run a researcher → writer chain with real LLM calls."""
-        from agentqa.adapters.langgraph import LangGraphNodeAgent
-        from agentqa.engine import SimulationEngine
-        from agentqa.scenario import AgentConfig, ScenarioConfig
+        from riftcheck.adapters.langgraph import LangGraphNodeAgent
+        from riftcheck.engine import SimulationEngine
+        from riftcheck.scenario import AgentConfig, ScenarioConfig
 
         researcher = LangGraphNodeAgent(
             "researcher",
@@ -126,7 +126,7 @@ class TestLangGraphRealAgent:
 
     def test_node_state_persists(self, anthropic_api_key, langgraph_available):
         """Verify that node state accumulates across turns."""
-        from agentqa.adapters.langgraph import LangGraphNodeAgent
+        from riftcheck.adapters.langgraph import LangGraphNodeAgent
 
         node = LangGraphNodeAgent(
             "researcher",

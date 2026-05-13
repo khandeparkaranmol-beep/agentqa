@@ -1,4 +1,4 @@
-"""Build script for Cython compilation of AgentQA.
+"""Build script for Cython compilation of Riftcheck.
 
 Compiles all .py modules to C extensions (.so on Linux/macOS, .pyd on Windows),
 so the PyPI distribution contains only compiled binaries — no readable source.
@@ -18,7 +18,7 @@ from setuptools import Extension, setup
 from setuptools.command.build_py import build_py as _build_py
 
 SRC_DIR = Path("src")
-PACKAGE_DIR = SRC_DIR / "agentqa"
+PACKAGE_DIR = SRC_DIR / "riftcheck"
 
 # Files to keep as .py (not compiled):
 # - __init__.py files: needed for package discovery
@@ -33,7 +33,7 @@ def find_extensions() -> list[Extension]:
             continue
 
         # Convert file path to dotted module name
-        # src/agentqa/engine.py -> agentqa.engine
+        # src/riftcheck/engine.py -> riftcheck.engine
         rel_path = py_file.relative_to(SRC_DIR)
         module_name = str(rel_path).replace(os.sep, ".").removesuffix(".py")
 

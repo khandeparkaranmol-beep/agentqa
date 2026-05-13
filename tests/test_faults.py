@@ -1,12 +1,12 @@
 from __future__ import annotations
 
-import agentqa.faults  # noqa: F401 — register all faults
+import riftcheck.faults  # noqa: F401 — register all faults
 
-from agentqa.agent import Message
-from agentqa.faults.base import registry
-from agentqa.faults.corrupt import CorruptFault
-from agentqa.faults.drop import DropFault
-from agentqa.faults.latency import LatencyFault
+from riftcheck.agent import Message
+from riftcheck.faults.base import registry
+from riftcheck.faults.corrupt import CorruptFault
+from riftcheck.faults.drop import DropFault
+from riftcheck.faults.latency import LatencyFault
 
 
 def _make_msg(content: str = "hello") -> Message:
@@ -63,9 +63,9 @@ class TestLatencyFault:
 
 class TestFaultEngineIntegration:
     def test_fault_injected_at_correct_turn(self) -> None:
-        from agentqa.adapters.raw import RawAgent
-        from agentqa.engine import SimulationEngine
-        from agentqa.scenario import AgentConfig, FaultConfig, ScenarioConfig
+        from riftcheck.adapters.raw import RawAgent
+        from riftcheck.engine import SimulationEngine
+        from riftcheck.scenario import AgentConfig, FaultConfig, ScenarioConfig
 
         # In a 2-agent round-robin: sender acts on even turns (0, 2, ...),
         # receiver acts on odd turns (1, 3, ...). Fault at turn=1 targets receiver.
@@ -96,9 +96,9 @@ class TestFaultEngineIntegration:
 
 class TestCostTracking:
     def test_cost_summary_zero_by_default(self) -> None:
-        from agentqa.adapters.raw import RawAgent
-        from agentqa.engine import SimulationEngine
-        from agentqa.scenario import AgentConfig, ScenarioConfig
+        from riftcheck.adapters.raw import RawAgent
+        from riftcheck.engine import SimulationEngine
+        from riftcheck.scenario import AgentConfig, ScenarioConfig
 
         scenario = ScenarioConfig(
             name="cost test",
@@ -117,9 +117,9 @@ class TestCostTracking:
         assert "b" in cost.per_agent
 
     def test_cost_populated_from_response_metadata(self) -> None:
-        from agentqa.adapters.raw import RawAgent
-        from agentqa.engine import SimulationEngine
-        from agentqa.scenario import AgentConfig, ScenarioConfig
+        from riftcheck.adapters.raw import RawAgent
+        from riftcheck.engine import SimulationEngine
+        from riftcheck.scenario import AgentConfig, ScenarioConfig
 
         def expensive_handler(msg: dict) -> dict:
             return {"content": "response", "input_tokens": 100, "output_tokens": 50, "cost_usd": 0.002}

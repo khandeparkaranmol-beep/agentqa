@@ -1,6 +1,6 @@
 from __future__ import annotations
 
-from agentqa.adapters.raw import RawAgent
+from riftcheck.adapters.raw import RawAgent
 
 _turn = {"n": 0}
 

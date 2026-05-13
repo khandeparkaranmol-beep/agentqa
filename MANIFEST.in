@@ -1,6 +1,6 @@
 include LICENSE
 include README.md
-recursive-include src/agentqa/viewer *.html
+recursive-include src/riftcheck/viewer *.html
 prune .claude
 prune frontend
 prune node_modules

@@ -54,7 +54,7 @@ export interface TraceData {
   events: TraceEvent[];
   results: PropertyResult[];
   topology?: string;
-  agentqa_version?: string;
+  riftcheck_version?: string;
   /** Optional agent metadata: { "alice": "Procurement negotiator", ... } */
   agent_roles?: Record<string, string>;
   /** Multi-run summary when this trace was part of a larger run. */

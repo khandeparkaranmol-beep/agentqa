@@ -6,27 +6,27 @@
 
 ## Chunk 1: Scaffold the repo (15 min)
 
-**Verify by:** `pip install -e ".[dev]"` succeeds, `agentqa --help` prints something
+**Verify by:** `pip install -e ".[dev]"` succeeds, `riftcheck --help` prints something
 
 **Prompt to paste into Claude Code:**
 
 ```
-Initialize the AgentQA Python project. Read CLAUDE.md for full project context.
+Initialize the Riftcheck Python project. Read CLAUDE.md for full project context.
 
 Do these things:
 1. Create pyproject.toml with:
-   - name: agentqa
+   - name: riftcheck
    - version: 0.1.0
    - python_requires: >=3.10
    - dependencies: pyyaml, click, pydantic>=2.0
    - optional dev dependencies: pytest, pytest-cov, ruff
-   - entry point: agentqa = agentqa.cli:main
-   - use src layout (src/agentqa/)
+   - entry point: riftcheck = riftcheck.cli:main
+   - use src layout (src/riftcheck/)
 
 2. Create the full directory structure from CLAUDE.md with empty __init__.py files in every package
 
 3. Create a minimal cli.py with a Click group and one placeholder command:
-   agentqa run <path> --runs N (default 5)
+   riftcheck run <path> --runs N (default 5)
    Just print "Would run scenarios from {path} with {runs} runs" for now.
 
 4. Create .gitignore (Python standard + .env + dist/ + *.egg-info)
@@ -42,14 +42,14 @@ Don't create any actual logic yet — just the skeleton.
 
 ## Chunk 2: Core data models (15 min)
 
-**Verify by:** `python -c "from agentqa.agent import AgentUnderTest; print('OK')"` works
+**Verify by:** `python -c "from riftcheck.agent import AgentUnderTest; print('OK')"` works
 
 **Prompt:**
 
 ```
-Read CLAUDE.md for context. Now implement the core data models for AgentQA.
+Read CLAUDE.md for context. Now implement the core data models for Riftcheck.
 
-1. In src/agentqa/agent.py:
+1. In src/riftcheck/agent.py:
    - Create Message as a Pydantic BaseModel with fields: sender (str), receiver (str), content (str), turn (int), metadata (dict, default empty), timestamp (float, default 0.0)
    - Create Response as a Pydantic BaseModel with: content (str), metadata (dict, default empty)
    - Create AgentUnderTest as an abstract base class (ABC) with:
@@ -59,7 +59,7 @@ Read CLAUDE.md for context. Now implement the core data models for AgentQA.
      - setup() -> None (optional, default no-op — called before simulation starts)
      - teardown() -> None (optional, default no-op — called after simulation ends)
 
-2. In src/agentqa/trace.py:
+2. In src/riftcheck/trace.py:
    - Create TraceEvent as a Pydantic BaseModel with: type (Literal["message", "state_change", "fault_injected", "property_check"]), turn (int), agent (str | None), data (dict), timestamp (float)
    - Create Trace class that:
      - Holds a list of TraceEvents
@@ -69,7 +69,7 @@ Read CLAUDE.md for context. Now implement the core data models for AgentQA.
      - Has to_jsonl(path: Path) method that writes each event as one JSON line
      - Has a from_jsonl(path: Path) classmethod that reads back
 
-3. In src/agentqa/scenario.py:
+3. In src/riftcheck/scenario.py:
    - Create these Pydantic models: AgentConfig (name: str, role: str | None, config: dict default empty), FaultConfig (at_turn: int, action: str, target: str, params: dict default empty), PropertyConfig (name: str, params: dict default empty), ScenarioConfig (name: str, agents: list[AgentConfig], turns: int default 20, inject: list[FaultConfig] default empty, assertions: list[PropertyConfig] default empty, runs: int default 5, setup: dict default empty)
    - Create load_scenario(path: Path) -> ScenarioConfig that reads a YAML file and validates it into ScenarioConfig
 
@@ -89,14 +89,14 @@ Run the test. Commit if it passes.
 ```
 Read CLAUDE.md for context. Implement the raw Python adapter — the simplest possible way to wrap a Python function as an AgentUnderTest.
 
-1. In src/agentqa/adapters/raw.py:
+1. In src/riftcheck/adapters/raw.py:
    - Create RawAgent(AgentUnderTest) that wraps a plain Python callable
    - Constructor takes: name (str), handler (Callable that takes a dict with 'sender', 'content', 'turn' keys and returns a str or dict with 'content' key), initial_state (dict, optional)
    - receive() calls the handler, returns a Response
    - get_state() returns the current state dict
    - The handler can optionally modify state by accepting a second 'state' parameter (check with inspect)
 
-2. In src/agentqa/adapters/__init__.py:
+2. In src/riftcheck/adapters/__init__.py:
    - Export RawAgent
 
 3. Write a test in tests/test_raw_adapter.py:
@@ -119,7 +119,7 @@ Run tests. Commit if passing.
 ```
 Read CLAUDE.md for context. This is the most important chunk — build the simulation engine.
 
-1. In src/agentqa/engine.py:
+1. In src/riftcheck/engine.py:
    - Create SimulationEngine class
    - Constructor takes: agents (list[AgentUnderTest]), scenario (ScenarioConfig)
    - run_once() -> Trace method that:
@@ -151,18 +151,18 @@ Run tests. Commit if passing.
 
 ## Chunk 5: Scenario YAML loading + CLI wiring (20 min)
 
-**Verify by:** Create a YAML file, run `agentqa run scenario.yaml`, see output
+**Verify by:** Create a YAML file, run `riftcheck run scenario.yaml`, see output
 
 **Prompt:**
 
 ```
 Read CLAUDE.md for context. Wire together the scenario loader and CLI so a developer can run a scenario from a YAML file.
 
-1. Update src/agentqa/scenario.py if needed:
+1. Update src/riftcheck/scenario.py if needed:
    - Ensure load_scenario handles file-not-found with a clear error message
    - Validate that agent names in 'inject' and 'assertions' reference agents defined in 'agents'
 
-2. Update src/agentqa/cli.py:
+2. Update src/riftcheck/cli.py:
    - The `run` command should:
      a. Accept a path (file or directory)
      b. If directory, find all .yaml and .yml files in it
@@ -198,7 +198,7 @@ Read CLAUDE.md for context. Wire together the scenario loader and CLI so a devel
    - Seller starts at 12000, decrements by 500 each turn
    - When their prices cross, they agree
 
-Test: `agentqa run examples/negotiation/scenario.yaml` loads and prints the config.
+Test: `riftcheck run examples/negotiation/scenario.yaml` loads and prints the config.
 
 Commit if working.
 ```
@@ -207,7 +207,7 @@ Commit if working.
 
 ## Chunk 6: Wire engine to CLI + terminal output (25 min)
 
-**Verify by:** `agentqa run examples/negotiation/` shows a live agent conversation in the terminal
+**Verify by:** `riftcheck run examples/negotiation/` shows a live agent conversation in the terminal
 
 **Prompt:**
 
@@ -215,7 +215,7 @@ Commit if working.
 Read CLAUDE.md for context. Wire the simulation engine to the CLI and add human-readable terminal output.
 
 1. The challenge: scenarios define agents by name, but the engine needs actual AgentUnderTest instances. For now, solve this with a simple agent registry pattern:
-   - In src/agentqa/agent.py, add an AgentRegistry class:
+   - In src/riftcheck/agent.py, add an AgentRegistry class:
      - register(name: str, agent: AgentUnderTest)
      - get(name: str) -> AgentUnderTest
      - This is a simple dict wrapper
@@ -227,7 +227,7 @@ Read CLAUDE.md for context. Wire the simulation engine to the CLI and add human-
    - Call engine.run()
    - For each trace (run), print a human-readable summary
 
-3. Create src/agentqa/display.py for terminal output:
+3. Create src/riftcheck/display.py for terminal output:
    - print_trace(trace: Trace, scenario_name: str, run_number: int) function
    - Format each message as:
      ```
@@ -237,9 +237,9 @@ Read CLAUDE.md for context. Wire the simulation engine to the CLI and add human-
    - At the end of each run, print a summary: total turns, which agents participated, whether it completed or hit the turn limit
    - After all runs, print aggregate: "3/3 runs completed within turn limit"
 
-4. Also save traces as .jsonl to a configurable output directory (default: .agentqa/traces/)
+4. Also save traces as .jsonl to a configurable output directory (default: .riftcheck/traces/)
 
-Test: `agentqa run examples/negotiation/ --agents examples/negotiation/agents.py`
+Test: `riftcheck run examples/negotiation/ --agents examples/negotiation/agents.py`
 Should show a readable conversation between buyer and seller.
 
 Commit if working.
@@ -256,7 +256,7 @@ Commit if working.
 ```
 Read CLAUDE.md for context. Build the property checker system and implement the first checker: no_information_leak.
 
-1. In src/agentqa/properties/base.py:
+1. In src/riftcheck/properties/base.py:
    - Create PropertyChecker as an ABC:
      - name: str (abstract property)
      - check(trace: Trace, scenario: ScenarioConfig, params: dict) -> PropertyResult (abstract method)
@@ -268,7 +268,7 @@ Read CLAUDE.md for context. Build the property checker system and implement the 
      - turn: int | None (the turn where the violation occurred, if applicable)
    - Create a PropertyRegistry that maps property names to checker instances
 
-2. In src/agentqa/properties/information_leak.py:
+2. In src/riftcheck/properties/information_leak.py:
    - Create InformationLeakChecker(PropertyChecker):
      - Checks that data marked as private to one agent never appears in messages to other agents
      - How it works:
@@ -318,25 +318,25 @@ Run tests and the example. The example should show a FAILED property check. Comm
 ```
 Read CLAUDE.md for context. Implement the remaining 4 property checkers.
 
-1. In src/agentqa/properties/convergence.py — converges_within:
+1. In src/riftcheck/properties/convergence.py — converges_within:
    - Checks that the interaction reaches a "done" state within N turns
    - "Done" is defined as: any agent's response contains a configurable completion marker (default: agent response metadata has "done": true, OR message content contains "AGREED" or "DEAL" case-insensitive)
    - params: max_turns (int)
    - Passes if convergence happens within max_turns, fails otherwise
 
-2. In src/agentqa/properties/deadlock.py — no_deadlock:
+2. In src/riftcheck/properties/deadlock.py — no_deadlock:
    - Checks that no state exists where all agents are waiting/stuck
    - Detection: if the last N consecutive messages (default 4) from ALL agents are identical or near-identical (same content after stripping whitespace), that's a deadlock
    - Also detect ping-pong: if two agents alternate the exact same pair of messages for 3+ cycles
    - params: lookback (int, default 4)
 
-3. In src/agentqa/properties/role_boundary.py — role_boundary:
+3. In src/riftcheck/properties/role_boundary.py — role_boundary:
    - Checks that agents only perform actions consistent with their role
    - How: the scenario defines role constraints as a list of "forbidden_actions" per agent (strings). The checker scans message content for these forbidden action patterns.
    - params: agent (str), forbidden_actions (list[str])
    - Example: auditor has forbidden_actions: ["I offer", "I accept", "I counter"] — if auditor sends a message containing any of these, it's a role violation
 
-4. In src/agentqa/properties/output_schema.py — output_schema:
+4. In src/riftcheck/properties/output_schema.py — output_schema:
    - Checks that the final collective output matches a JSON schema
    - Looks at the last message's content — tries to parse it as JSON, validates against a provided schema
    - params: schema (dict — a JSON Schema object)
@@ -361,7 +361,7 @@ Run all tests. Commit.
 
 ## Chunk 9: Multi-run statistics + exit codes (20 min)
 
-**Verify by:** `agentqa run` with --runs 5 shows pass rates, exits with code 1 on failure
+**Verify by:** `riftcheck run` with --runs 5 shows pass rates, exits with code 1 on failure
 
 **Prompt:**
 
@@ -413,7 +413,7 @@ Run tests. Test the CLI manually with the examples. Commit.
 ```
 Read CLAUDE.md for context. Build the pytest plugin so scenarios are discovered as test cases.
 
-1. In src/agentqa/pytest_plugin.py:
+1. In src/riftcheck/pytest_plugin.py:
    - Register as a pytest plugin via pyproject.toml entry points (pytest11)
    - pytest_collect_file hook: collect .yaml files that contain an "agents" key as test items
    - Each scenario becomes a pytest test item named after the scenario
@@ -426,15 +426,15 @@ Read CLAUDE.md for context. Build the pytest plugin so scenarios are discovered 
 
 2. Add to pyproject.toml:
    [project.entry-points.pytest11]
-   agentqa = "agentqa.pytest_plugin"
+   riftcheck = "riftcheck.pytest_plugin"
 
 3. Create a conftest.py in examples/ that's empty (just so pytest discovers the directory)
 
 4. Polish:
    - Make sure `pip install -e .` still works
-   - Make sure `agentqa --help` shows clean help text
-   - Make sure `agentqa run --help` documents all flags
-   - Add a one-line version command: `agentqa --version`
+   - Make sure `riftcheck --help` shows clean help text
+   - Make sure `riftcheck run --help` documents all flags
+   - Add a one-line version command: `riftcheck --version`
    - Clean up any TODO comments that are no longer relevant
 
 5. Final test: run `pytest examples/ -v` and see scenarios discovered and executed.

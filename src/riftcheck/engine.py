@@ -1,0 +1,381 @@
+from __future__ import annotations
+
+import logging
+import time
+
+from riftcheck.agent import AgentUnderTest, Message
+from riftcheck.scenario import ScenarioConfig
+from riftcheck.trace import Trace, TraceEvent
+
+logger = logging.getLogger(__name__)
+
+
+class SimulationEngine:
+    """Orchestrates multi-agent simulations and records every event to a Trace.
+
+    Agents never call each other directly. All communication routes through
+    the engine, which applies fault injections and records everything.
+    """
+
+    def __init__(self, agents: list[AgentUnderTest], scenario: ScenarioConfig) -> None:
+        self._agents = agents
+        self._scenario = scenario
+        self._agent_map: dict[str, AgentUnderTest] = {a.name: a for a in agents}
+
+    def run_once(self) -> Trace:
+        """Execute one full simulation run and return its Trace.
+
+        Turn 0: each agent receives its setup prompt from scenario.setup,
+        or a generic 'Begin the interaction.' if no setup is defined.
+        Subsequent turns: each agent receives the previous active agent's response.
+        Agents act in round-robin order.
+        """
+        trace = Trace()
+
+        for agent in self._agents:
+            agent.setup()
+
+        previous_response_content = "Begin the interaction."
+        previous_sender = "__system__"
+
+        for turn in range(self._scenario.turns):
+            active_agent = self._agents[turn % len(self._agents)]
+
+            if turn == 0:
+                setup_data = self._scenario.setup.get(active_agent.name, {})
+                if isinstance(setup_data, dict) and setup_data:
+                    content = (
+                        f"Begin the interaction. Your setup context: {setup_data}"
+                    )
+                elif isinstance(setup_data, str):
+                    content = setup_data
+                else:
+                    content = "Begin the interaction."
+            else:
+                content = previous_response_content
+
+            msg = Message(
+                sender=previous_sender,
+                receiver=active_agent.name,
+                content=content,
+                turn=turn,
+                timestamp=time.time(),
+            )
+
+            # Apply any fault injections declared for this turn and target.
+            msg = self._apply_faults(msg, turn, active_agent.name, trace)
+
+            response = active_agent.receive(msg)
+            logger.debug("Turn %d: %s → %s", turn, active_agent.name, response.content[:80])
+
+            # Record the agent's outgoing response as the message event.
+            # Receiver is the next agent in round-robin (or __system__ on the last turn).
+            if len(self._agents) > 1:
+                next_agent = self._agents[(turn + 1) % len(self._agents)]
+                receiver_name = next_agent.name
+            else:
+                receiver_name = "__system__"
+
+            # Agents that track token usage may return cost fields in metadata.
+            input_tokens = int(response.metadata.get("input_tokens", 0))
+            output_tokens = int(response.metadata.get("output_tokens", 0))
+            cost_usd = float(response.metadata.get("cost_usd", 0.0))
+
+            trace.add_event(
+                TraceEvent(
+                    type="message",
+                    turn=turn,
+                    agent=active_agent.name,
+                    data={
+                        "sender": active_agent.name,
+                        "receiver": receiver_name,
+                        "content": response.content,
+                        "metadata": response.metadata,
+                    },
+                    timestamp=time.time(),
+                    input_tokens=input_tokens,
+                    output_tokens=output_tokens,
+                    cost_usd=cost_usd,
+                )
+            )
+
+            state = active_agent.get_state()
+            trace.add_event(
+                TraceEvent(
+                    type="state_change",
+                    turn=turn,
+                    agent=active_agent.name,
+                    data={"state": state},
+                    timestamp=time.time(),
+                )
+            )
+
+            previous_response_content = response.content
+            previous_sender = active_agent.name
+
+        for agent in self._agents:
+            agent.teardown()
+
+        self._run_property_checks(trace)
+        self._track_milestones(trace)
+        return trace
+
+    def _apply_faults(
+        self, msg: Message, turn: int, receiver: str, trace: Trace
+    ) -> Message:
+        """Apply any matching fault injections and record fault_injected events."""
+        import riftcheck.faults  # noqa: F401 — triggers self-registration
+        from riftcheck.faults.base import registry as fault_registry
+
+        for fault_config in self._scenario.inject:
+            if fault_config.at_turn != turn:
+                continue
+            if fault_config.target != receiver:
+                continue
+
+            try:
+                injector = fault_registry.get(fault_config.action)
+            except KeyError as exc:
+                logger.warning("Skipping unknown fault: %s", exc)
+                continue
+
+            msg = injector.apply(msg, fault_config.params)
+            trace.add_event(
+                TraceEvent(
+                    type="fault_injected",
+                    turn=turn,
+                    agent=receiver,
+                    data={
+                        "action": fault_config.action,
+                        "target": receiver,
+                        "params": fault_config.params,
+                    },
+                    timestamp=time.time(),
+                )
+            )
+            logger.debug("Fault '%s' applied to %s at turn %d", fault_config.action, receiver, turn)
+
+        return msg
+
+    def _run_property_checks(self, trace: Trace) -> None:
+        """Execute all declared property checkers and attach results to the trace."""
+        if not self._scenario.assertions:
+            return
+
+        import riftcheck.properties  # noqa: F401 — triggers self-registration of all checkers
+        from riftcheck.properties.base import registry
+
+        for prop_config in self._scenario.assertions:
+            try:
+                checker = registry.get(prop_config.name)
+            except KeyError as exc:
+                logger.warning("Skipping unknown property checker: %s", exc)
+                continue
+
+            result = checker.check(trace, self._scenario, prop_config.params)
+            trace.results.append(result)
+            trace.add_event(
+                TraceEvent(
+                    type="property_check",
+                    turn=-1,
+                    agent=None,
+                    data={
+                        "property_name": result.property_name,
+                        "passed": result.passed,
+                        "details": result.details,
+                    },
+                    timestamp=time.time(),
+                )
+            )
+
+    def _track_milestones(self, trace: Trace) -> None:
+        """Scan the trace for declared milestones and attach hit/miss results."""
+        if not self._scenario.milestones:
+            return
+
+        messages = trace.get_messages()
+        for milestone in self._scenario.milestones:
+            hit = False
+            hit_turn: int | None = None
+            for event in messages:
+                sender = event.data.get("sender", event.agent or "")
+                if milestone.agent and sender != milestone.agent:
+                    continue
+                content: str = event.data.get("content", "")
+                if milestone.marker.lower() in content.lower():
+                    hit = True
+                    hit_turn = event.turn
+                    break
+            trace.add_event(
+                TraceEvent(
+                    type="property_check",
+                    turn=hit_turn if hit_turn is not None else -1,
+                    agent=milestone.agent,
+                    data={
+                        "property_name": f"milestone:{milestone.name}",
+                        "passed": hit,
+                        "details": (
+                            f"Milestone '{milestone.name}' reached at turn {hit_turn}."
+                            if hit
+                            else f"Milestone '{milestone.name}' never reached (marker: '{milestone.marker}')."
+                        ),
+                        "is_milestone": True,
+                    },
+                    timestamp=time.time(),
+                )
+            )
+
+    def run(self, n: int | None = None) -> list[Trace]:
+        """Run the simulation n times and return all traces.
+
+        Args:
+            n: Number of runs. Defaults to scenario.runs.
+        """
+        count = n if n is not None else self._scenario.runs
+        traces = []
+        for i in range(count):
+            logger.info("Starting run %d/%d for scenario '%s'", i + 1, count, self._scenario.name)
+            trace = self.run_once()
+            traces.append(trace)
+        return traces
+
+    def summarize(self, traces: list[Trace]) -> "RunSummary":
+        """Compute aggregate statistics across all runs."""
+        from riftcheck.engine import RunSummary, PropertyStats  # local import to avoid circularity
+
+        property_names: set[str] = set()
+        for trace in traces:
+            for result in trace.results:
+                property_names.add(result.property_name)
+
+        property_results: dict[str, PropertyStats] = {}
+        for prop_name in property_names:
+            passes = 0
+            failures = 0
+            failure_details: list[str] = []
+            for i, trace in enumerate(traces):
+                for result in trace.results:
+                    if result.property_name == prop_name:
+                        if result.passed:
+                            passes += 1
+                        else:
+                            failures += 1
+                            failure_details.append(f"Run {i + 1}: FAILED — {result.details}")
+            total = passes + failures
+            ci_lo, ci_hi = wilson_interval(passes, total)
+            property_results[prop_name] = PropertyStats(
+                passes=passes,
+                failures=failures,
+                pass_rate=passes / total if total > 0 else 0.0,
+                ci_lower=ci_lo,
+                ci_upper=ci_hi,
+                failure_details=failure_details,
+            )
+
+        # Milestone stats
+        milestone_results: dict[str, PropertyStats] = {}
+        milestone_names: set[str] = set()
+        for trace in traces:
+            for event in trace.events:
+                if event.type == "property_check" and event.data.get("is_milestone"):
+                    milestone_names.add(event.data["property_name"])
+
+        for ms_name in milestone_names:
+            passes = 0
+            failures = 0
+            failure_details: list[str] = []
+            for i, trace in enumerate(traces):
+                for event in trace.events:
+                    if (
+                        event.type == "property_check"
+                        and event.data.get("is_milestone")
+                        and event.data["property_name"] == ms_name
+                    ):
+                        if event.data["passed"]:
+                            passes += 1
+                        else:
+                            failures += 1
+                            failure_details.append(f"Run {i + 1}: {event.data['details']}")
+            total = passes + failures
+            ci_lo, ci_hi = wilson_interval(passes, total)
+            milestone_results[ms_name] = PropertyStats(
+                passes=passes,
+                failures=failures,
+                pass_rate=passes / total if total > 0 else 0.0,
+                ci_lower=ci_lo,
+                ci_upper=ci_hi,
+                failure_details=failure_details,
+            )
+
+        # Topology: classify based on the first trace (structure should be stable)
+        from riftcheck.topology import classify_topology
+        topology = classify_topology(traces[0]) if traces else None
+
+        return RunSummary(
+            scenario_name=self._scenario.name,
+            total_runs=len(traces),
+            property_results=property_results,
+            milestone_results=milestone_results,
+            topology=topology,
+        )
+
+
+from pydantic import BaseModel  # noqa: E402 — kept at bottom to avoid polluting top-level imports
+
+
+def wilson_interval(passes: int, total: int, confidence: float = 0.95) -> tuple[float, float]:
+    """Wilson score confidence interval for a binomial proportion.
+
+    Returns (lower, upper) bounds. Handles edge cases:
+    - total == 0  → (0.0, 0.0)
+    - passes == 0 → lower bound is 0
+    - passes == total → upper bound is 1
+
+    Args:
+        passes: Number of successes.
+        total: Total number of trials.
+        confidence: Confidence level (default 0.95 for 95% CI).
+
+    Returns:
+        Tuple of (lower_bound, upper_bound), both in [0, 1].
+    """
+    if total == 0:
+        return (0.0, 0.0)
+
+    import math
+
+    # Z-score for confidence level (two-tailed)
+    # For 95% → 1.96, for 90% → 1.645, for 99% → 2.576
+    # Using inverse normal approximation
+    alpha = 1 - confidence
+    z = {0.10: 1.645, 0.05: 1.96, 0.01: 2.576}.get(alpha, 1.96)
+
+    p_hat = passes / total
+    denominator = 1 + z * z / total
+    centre = p_hat + z * z / (2 * total)
+    spread = z * math.sqrt((p_hat * (1 - p_hat) + z * z / (4 * total)) / total)
+
+    lower = max(0.0, (centre - spread) / denominator)
+    upper = min(1.0, (centre + spread) / denominator)
+    return (round(lower, 4), round(upper, 4))
+
+
+class PropertyStats(BaseModel):
+    """Aggregate statistics for one property across all runs."""
+
+    passes: int
+    failures: int
+    pass_rate: float
+    ci_lower: float = 0.0
+    ci_upper: float = 0.0
+    failure_details: list[str]
+
+
+class RunSummary(BaseModel):
+    """Aggregate results for a full multi-run scenario execution."""
+
+    scenario_name: str
+    total_runs: int
+    property_results: dict[str, PropertyStats]
+    milestone_results: dict[str, PropertyStats] = {}
+    topology: str | None = None  # populated by topology analysis if available

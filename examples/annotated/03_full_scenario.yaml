@@ -1,8 +1,8 @@
 # ============================================================================
-# AgentQA — Full Scenario: Every Feature
+# Riftcheck — Full Scenario: Every Feature
 # ============================================================================
 #
-# This is the reference scenario. It demonstrates every feature AgentQA
+# This is the reference scenario. It demonstrates every feature Riftcheck
 # supports: milestones, all major property checker families, multi-agent
 # setup, and how the pieces fit together for a realistic test.
 #
@@ -25,8 +25,8 @@
 #   - The final output matches a JSON schema
 #
 # HOW TO RUN:
-#   agentqa run examples/annotated/03_full_scenario.yaml --view
-#   agentqa run examples/annotated/03_full_scenario.yaml --thorough --save-traces
+#   riftcheck run examples/annotated/03_full_scenario.yaml --view
+#   riftcheck run examples/annotated/03_full_scenario.yaml --thorough --save-traces
 #
 # ============================================================================
 
@@ -100,7 +100,7 @@ milestones:
 # ============================================================================
 #
 # Below are 12 property checkers demonstrating the full range of what
-# AgentQA can verify. In practice, pick the 3-5 most relevant to your
+# Riftcheck can verify. In practice, pick the 3-5 most relevant to your
 # scenario. You don't need all of them every time.
 
 assertions:
@@ -390,29 +390,29 @@ assertions:
 # CLI COMMANDS FOR THIS SCENARIO:
 #
 #   # Basic run (5 iterations, terminal output)
-#   agentqa run examples/annotated/03_full_scenario.yaml
+#   riftcheck run examples/annotated/03_full_scenario.yaml
 #
 #   # Open interactive HTML viewer after run
-#   agentqa run examples/annotated/03_full_scenario.yaml --view
+#   riftcheck run examples/annotated/03_full_scenario.yaml --view
 #
 #   # Override run count for thorough testing
-#   agentqa run examples/annotated/03_full_scenario.yaml --runs 20
+#   riftcheck run examples/annotated/03_full_scenario.yaml --runs 20
 #
 #   # Save traces for later analysis
-#   agentqa run examples/annotated/03_full_scenario.yaml --save-traces
+#   riftcheck run examples/annotated/03_full_scenario.yaml --save-traces
 #
 #   # View a previously saved trace
-#   agentqa view .agentqa/traces/full_scenario_run_1.jsonl
+#   riftcheck view .riftcheck/traces/full_scenario_run_1.jsonl
 #
 #   # Diff two runs side-by-side
-#   agentqa diff .agentqa/traces/run_1.jsonl .agentqa/traces/run_2.jsonl
+#   riftcheck diff .riftcheck/traces/run_1.jsonl .riftcheck/traces/run_2.jsonl
 #
 #   # Build a dashboard across all saved traces
-#   agentqa dashboard .agentqa/traces/
+#   riftcheck dashboard .riftcheck/traces/
 #
 #   # Re-check properties against a saved trace (no re-execution)
-#   agentqa replay .agentqa/traces/run_1.jsonl --scenario this_file.yaml
+#   riftcheck replay .riftcheck/traces/run_1.jsonl --scenario this_file.yaml
 #
 #   # Export trace to MAST format for external annotation
-#   agentqa export .agentqa/traces/run_1.jsonl --format mast
+#   riftcheck export .riftcheck/traces/run_1.jsonl --format mast
 # ============================================================================

@@ -1,25 +1,29 @@
-# LinkedIn Post — AgentQA v0.9
+# LinkedIn Post — Riftcheck v1.0
 
 ## Final Post (copy-paste ready)
 
-I watched two AI agents deadlock for 47 turns — each politely waiting for the other to go first. Both passed their unit tests.
+Every agent in your system passes its unit tests. Then they talk to each other and everything breaks.
 
-That's the blind spot: we test agents in isolation, but the bugs live in the conversation between them. Information leaks, infinite loops, tasks marked "done" before they're finished — none of this shows up until agents interact.
+One leaks a private budget mid-negotiation. Two get stuck in a politeness loop for 47 turns. A task gets marked "done" three turns before anyone finishes it. An agent ignores instructions from its peer and goes off-script.
 
-I built AgentQA to catch these before production does.
+None of this shows up in isolation. The bugs live in the conversation between agents. And nobody's testing that.
 
-pip install agentqa
-agentqa init .
-agentqa run scenario.yaml --view
+I built Riftcheck to find these bugs before production does.
 
-Point it at your existing code (CrewAI, LangGraph, AutoGen, or raw Python). It scans your agents, generates adversarial test scenarios with fault injection, runs them multiple times, and reports pass rates with confidence intervals — so you know whether 4/5 passing is signal or noise.
+It's a Python CLI. Three commands:
 
-16 property checkers. Five fault types. A trace viewer that's a single HTML file — three views, no server, no account.
+  pip install riftcheck
+  riftcheck init .
+  riftcheck run scenario.yaml --view
 
-Guide: https://khandeparkaranmol-beep.github.io/AgentQA/
-Interactive demo: https://khandeparkaranmol-beep.github.io/AgentQA/viewer.html
+Point it at your existing codebase — CrewAI, LangGraph, AutoGen, or raw Python. It scans your agents, generates adversarial scenarios, injects faults between them, and runs everything multiple times with statistical confidence intervals. Not a single green checkmark. Actual pass rates you can trust.
 
-What's the worst bug you've found that only shows up when agents talk to each other?
+The --view flag opens a trace viewer — a single HTML file, no server, no account. You can watch exactly where the conversation broke down.
+
+Guide → https://khandeparkaranmol-beep.github.io/Riftcheck/
+Interactive demo → https://khandeparkaranmol-beep.github.io/Riftcheck/viewer.html
+
+What's the worst bug you've found that only appears when agents talk to each other?
 
 ---
 
@@ -27,8 +31,19 @@ What's the worst bug you've found that only shows up when agents talk to each ot
 
 - Post Tuesday-Thursday, 8-10am ET
 - No hashtags in the post body — add 2-3 in the first comment: #AI #testing #agents
-- First comment: "Interactive demo here — no install, just click: [demo link]. Full guide: [guide link]"
+- First comment: "Interactive demo — no install, just click: [demo link]. Full guide with examples: [guide link]"
 - Reply to every comment within 60 minutes (2.4x reach boost per LinkedIn algorithm)
 - Don't edit the post after publishing — LinkedIn deprioritizes edited posts
-- If it gets traction, follow up 2 days later with a "6 failure modes I found" deep dive
-- If you have the trace viewer video, upload it as native LinkedIn video (not a YouTube link) — native gets 3-5x more reach
+- If it gets traction, follow up 2 days later with a deep dive: "6 failure modes I found testing multi-agent systems" (information leaks, deadlocks, premature completion, role violations, reasoning gaps, coordination failures)
+- If you have a trace viewer screen recording, upload as native LinkedIn video (not YouTube link) — native gets 3-5x more reach
+
+## "Why not just X?" reply templates
+
+**"Why not just use pytest / unit tests?"**
+pytest tests functions. Riftcheck tests conversations. A unit test checks that Agent A responds correctly to a fixed input. Riftcheck checks what happens when Agent A's response causes Agent B to leak private data, deadlock, or go off-task — across multiple runs with fault injection. They're complementary. Riftcheck actually ships as a pytest plugin.
+
+**"Why not just log and review traces manually?"**
+You can — until you have 50 scenarios running 5x each. Riftcheck automates the property checking (16 checkers covering information flow, coordination, reasoning, and completion) and gives you statistical confidence instead of eyeballing. The trace viewer is there for when you need to dig in.
+
+**"How is this different from LangSmith / Braintrust / other observability tools?"**
+Those are observability — they show you what happened after the fact. Riftcheck is testing — it generates adversarial scenarios, injects faults, and checks properties before you deploy. The difference between APM and a test suite.

@@ -1,7 +1,7 @@
 from __future__ import annotations
 
-from agentqa.adapters.raw import RawAgent
-from agentqa.agent import Message
+from riftcheck.adapters.raw import RawAgent
+from riftcheck.agent import Message
 
 
 def _make_msg(content: str, turn: int = 1, sender: str = "tester") -> Message:

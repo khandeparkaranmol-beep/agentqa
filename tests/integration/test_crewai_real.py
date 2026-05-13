@@ -3,7 +3,7 @@
 Verifies that:
   1. A CrewAI Agent can be constructed with Claude as the LLM
   2. CrewAIAgent adapter wraps it correctly
-  3. AgentQA engine can run a scenario with real CrewAI agents
+  3. Riftcheck engine can run a scenario with real CrewAI agents
   4. Trace contains non-empty, substantive LLM responses
 
 Run: ANTHROPIC_API_KEY=sk-... python -m pytest tests/integration/test_crewai_real.py -v -s
@@ -14,7 +14,7 @@ import os
 
 import pytest
 
-from agentqa.agent import Message
+from riftcheck.agent import Message
 
 
 @pytest.fixture(autouse=True)
@@ -45,7 +45,7 @@ class TestCrewAIRealAgent:
     def test_single_message(self, anthropic_api_key, crewai_available):
         """Send one message through a real CrewAI agent and verify response."""
         from crewai import Agent, LLM
-        from agentqa.adapters.crewai import CrewAIAgent
+        from riftcheck.adapters.crewai import CrewAIAgent
 
         llm = LLM(
             model="anthropic/claude-haiku-4-5-20251001",
@@ -81,11 +81,11 @@ class TestCrewAIRealAgent:
         assert state["message_count"] == 1
 
     def test_two_agent_scenario(self, anthropic_api_key, crewai_available):
-        """Run a 2-agent, 4-turn scenario through the AgentQA engine."""
+        """Run a 2-agent, 4-turn scenario through the Riftcheck engine."""
         from crewai import Agent, LLM
-        from agentqa.adapters.crewai import CrewAIAgent
-        from agentqa.engine import SimulationEngine
-        from agentqa.scenario import AgentConfig, ScenarioConfig
+        from riftcheck.adapters.crewai import CrewAIAgent
+        from riftcheck.engine import SimulationEngine
+        from riftcheck.scenario import AgentConfig, ScenarioConfig
 
         llm = LLM(
             model="anthropic/claude-haiku-4-5-20251001",

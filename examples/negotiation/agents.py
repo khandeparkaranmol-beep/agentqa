@@ -5,7 +5,7 @@ the no_information_leak property to FAIL — proving the checker works.
 """
 from __future__ import annotations
 
-from agentqa.adapters.raw import RawAgent
+from riftcheck.adapters.raw import RawAgent
 
 
 def _buyer_handler(msg: dict, state: dict) -> str:

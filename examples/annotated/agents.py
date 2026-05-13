@@ -1,13 +1,13 @@
 # ============================================================================
-# AgentQA — Example Agents File
+# Riftcheck — Example Agents File
 # ============================================================================
 #
-# This file is loaded automatically by AgentQA when running any scenario in
+# This file is loaded automatically by Riftcheck when running any scenario in
 # this directory. It exports an `agents` dict mapping agent names (matching
 # the YAML) to AgentUnderTest instances.
 #
 # HOW IT WORKS:
-#   1. AgentQA reads your scenario YAML and finds the agent names
+#   1. Riftcheck reads your scenario YAML and finds the agent names
 #   2. It looks for agents.py in the same directory (or the --agents flag)
 #   3. It imports this file and reads the `agents` dict
 #   4. For each agent in the YAML, it looks up the matching handler here
@@ -25,7 +25,7 @@
 
 from __future__ import annotations
 
-from agentqa.adapters.raw import RawAgent
+from riftcheck.adapters.raw import RawAgent
 
 
 # --- Handler signature --------------------------------------------------------
@@ -156,10 +156,10 @@ def seller_handler(msg: dict, state: dict) -> str:
 
 
 # ============================================================================
-# THE AGENTS DICT — this is what AgentQA imports
+# THE AGENTS DICT — this is what Riftcheck imports
 # ============================================================================
 # Keys MUST match the agent names in your scenario YAML exactly.
-# AgentQA will error if a YAML agent name has no matching key here.
+# Riftcheck will error if a YAML agent name has no matching key here.
 
 agents = {
     # 3-agent scenarios (02, 03)

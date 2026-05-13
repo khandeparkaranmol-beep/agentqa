@@ -8,7 +8,7 @@ export default defineConfig({
     port: parseInt(process.env.PORT ?? "5173"),
   },
   build: {
-    outDir: "../src/agentqa/viewer",
+    outDir: "../src/riftcheck/viewer",
     emptyOutDir: true,
   },
 });

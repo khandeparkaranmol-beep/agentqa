@@ -57,7 +57,7 @@ jobs:
 
           # Test that the compiled wheel actually imports
           CIBW_TEST_COMMAND: >
-            python -c "import agentqa; print(f'AgentQA {agentqa.__version__} loaded OK')"
+            python -c "import riftcheck; print(f'Riftcheck {riftcheck.__version__} loaded OK')"
 
       - name: Upload wheel artifacts
         uses: actions/upload-artifact@v4

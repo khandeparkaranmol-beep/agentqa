@@ -1,4 +1,4 @@
-# LinkedIn Post (with video) — AgentQA v0.7
+# LinkedIn Post (with video) — Riftcheck v0.7
 
 _Uses the same Iteration 5 final copy as linkedin.md, adapted for video context._
 
@@ -6,11 +6,11 @@ I watched two AI agents deadlock for 47 turns — each politely waiting for the 
 
 That's the blind spot: we test agents in isolation, but the bugs live in the conversation between them. Information leaks, infinite loops, tasks marked "done" before they're finished — none of this shows up until agents interact.
 
-I built AgentQA to catch these before production does.
+I built Riftcheck to catch these before production does.
 
-pip install agentqa
-agentqa init .
-agentqa run scenario.yaml --view
+pip install riftcheck
+riftcheck init .
+riftcheck run scenario.yaml --view
 
 Point it at your existing code (CrewAI, LangGraph, AutoGen, or raw Python). It AST-scans your agents, generates adversarial test scenarios with fault injection, runs them multiple times, and reports pass rates with confidence intervals — so you know whether 4/5 passing is signal or noise.
 
@@ -18,9 +18,9 @@ The video above shows the trace viewer in action — a single HTML file, no serv
 
 16 property checkers. Five fault types. Open source, MIT licensed.
 
-Guide: https://khandeparkaranmol-beep.github.io/AgentQA/
-Interactive demo: https://khandeparkaranmol-beep.github.io/AgentQA/viewer.html
-GitHub: https://github.com/khandeparkaranmol-beep/AgentQA
+Guide: https://khandeparkaranmol-beep.github.io/Riftcheck/
+Interactive demo: https://khandeparkaranmol-beep.github.io/Riftcheck/viewer.html
+GitHub: https://github.com/khandeparkaranmol-beep/Riftcheck
 
 What's the worst bug you've found that only shows up when agents talk to each other?
 

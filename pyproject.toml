@@ -3,7 +3,7 @@ requires = ["setuptools>=68", "wheel", "Cython>=3.0"]
 build-backend = "setuptools.build_meta"
 
 [project]
-name = "agentqa"
+name = "riftcheck"
 version = "1.0.0"
 description = "Multi-agent interaction testing framework — catch deadlocks, leaks, and role violations before production"
 readme = "README.md"
@@ -38,17 +38,17 @@ dev = [
 ]
 
 [project.scripts]
-agentqa = "agentqa.cli:main"
+riftcheck = "riftcheck.cli:main"
 
 [project.entry-points.pytest11]
-agentqa = "agentqa.pytest_plugin"
+riftcheck = "riftcheck.pytest_plugin"
 
 [tool.setuptools.packages.find]
 where = ["src"]
 exclude = [".claude*", "frontend*"]
 
 [tool.setuptools.package-data]
-agentqa = ["viewer/*.html"]
+riftcheck = ["viewer/*.html"]
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

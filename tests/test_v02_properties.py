@@ -1,10 +1,10 @@
 from __future__ import annotations
 
-import agentqa.properties  # noqa: F401 — register all checkers
+import riftcheck.properties  # noqa: F401 — register all checkers
 
-from agentqa.properties.base import registry
-from agentqa.scenario import AgentConfig, ScenarioConfig
-from agentqa.trace import Trace, TraceEvent
+from riftcheck.properties.base import registry
+from riftcheck.scenario import AgentConfig, ScenarioConfig
+from riftcheck.trace import Trace, TraceEvent
 
 
 def _make_scenario(setup: dict | None = None) -> ScenarioConfig:

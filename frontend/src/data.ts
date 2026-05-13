@@ -2,12 +2,12 @@ import type { TraceEvent, MessageEvent, PropertyResult } from "./types";
 
 declare global {
   interface Window {
-    __AGENTQA_DATA__: import("./types").TraceData;
+    __RIFTCHECK_DATA__: import("./types").TraceData;
   }
 }
 
 export function getAppData() {
-  if (window.__AGENTQA_DATA__) return window.__AGENTQA_DATA__;
+  if (window.__RIFTCHECK_DATA__) return window.__RIFTCHECK_DATA__;
   // Dev fallback — sample data so `npm run dev` renders something useful
   return SAMPLE_DATA;
 }
@@ -106,7 +106,7 @@ const SAMPLE_DATA: import("./types").TraceData = {
   mode: "trace",
   title: "procurement_negotiation — Run 5 / 5",
   topology: "mesh",
-  agentqa_version: "0.5.0",
+  riftcheck_version: "0.5.0",
   agent_roles: {
     coordinator: "Orchestrates the procurement workflow",
     analyst: "Researches market data and suppliers",

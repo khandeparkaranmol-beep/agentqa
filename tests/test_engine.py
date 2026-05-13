@@ -1,8 +1,8 @@
 from __future__ import annotations
 
-from agentqa.adapters.raw import RawAgent
-from agentqa.engine import SimulationEngine
-from agentqa.scenario import AgentConfig, ScenarioConfig
+from riftcheck.adapters.raw import RawAgent
+from riftcheck.engine import SimulationEngine
+from riftcheck.scenario import AgentConfig, ScenarioConfig
 
 
 def _make_negotiation_scenario(turns: int = 6, runs: int = 1) -> ScenarioConfig:

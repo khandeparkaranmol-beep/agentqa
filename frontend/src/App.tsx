@@ -25,7 +25,7 @@ export function App() {
   const [selected, setSelected] = useState<MessageEvent | null>(null);
   const [viewMode, setViewMode] = useState<ViewMode>("spotlight");
   const [darkMode, setDarkMode] = useState<boolean>(() => {
-    const stored = localStorage.getItem("agentqa-theme");
+    const stored = localStorage.getItem("riftcheck-theme");
     if (stored) return stored === "dark";
     return true; // dark by default — cinematic
   });
@@ -75,7 +75,7 @@ export function App() {
     } else {
       document.documentElement.classList.remove("dark");
     }
-    localStorage.setItem("agentqa-theme", darkMode ? "dark" : "light");
+    localStorage.setItem("riftcheck-theme", darkMode ? "dark" : "light");
   }, [darkMode]);
 
   const isTrace = data.mode === "trace";
@@ -226,7 +226,7 @@ export function App() {
               <circle cx="55" cy="55" r="8" fill="white" opacity="0.95"/>
               <circle cx="55" cy="55" r="3.5" fill="#6366f1"/>
             </svg>
-            <span className="font-semibold text-slate-600 dark:text-slate-400 text-xs tracking-tight">AgentQA</span>
+            <span className="font-semibold text-slate-600 dark:text-slate-400 text-xs tracking-tight">Riftcheck</span>
           </span>
 
           <div className="ml-auto flex items-center gap-2 flex-shrink-0">

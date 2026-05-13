@@ -1,7 +1,7 @@
 """Clean negotiation agents — seller does NOT cheat. All assertions should pass."""
 from __future__ import annotations
 
-from agentqa.adapters.raw import RawAgent
+from riftcheck.adapters.raw import RawAgent
 
 
 def _buyer_handler(msg: dict, state: dict) -> str:

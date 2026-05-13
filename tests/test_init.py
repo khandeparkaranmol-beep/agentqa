@@ -1,4 +1,4 @@
-"""Tests for `agentqa init` — scanner, scaffold, and CLI integration.
+"""Tests for `riftcheck init` — scanner, scaffold, and CLI integration.
 
 Tests cover:
   1. Framework detection (CrewAI, LangGraph, AutoGen)
@@ -15,12 +15,12 @@ from pathlib import Path
 import pytest
 import yaml
 
-from agentqa.scanner.base import AgentInfo, EdgeInfo, ScanResult
-from agentqa.scanner.crewai import CrewAIScanner
-from agentqa.scanner.langgraph import LangGraphScanner
-from agentqa.scanner.autogen import AutoGenScanner
-from agentqa.scanner.detect import detect_framework, scan_project
-from agentqa.scaffold import generate_scenario_yaml, generate_agents_py
+from riftcheck.scanner.base import AgentInfo, EdgeInfo, ScanResult
+from riftcheck.scanner.crewai import CrewAIScanner
+from riftcheck.scanner.langgraph import LangGraphScanner
+from riftcheck.scanner.autogen import AutoGenScanner
+from riftcheck.scanner.detect import detect_framework, scan_project
+from riftcheck.scaffold import generate_scenario_yaml, generate_agents_py
 
 
 # ---------------------------------------------------------------------------
@@ -518,7 +518,7 @@ class TestAgentsPy:
         result = self._make_crewai_result()
         path = generate_agents_py(result, tmp_path)
         content = path.read_text()
-        assert "from agentqa.adapters.crewai import CrewAIAgent" in content
+        assert "from riftcheck.adapters.crewai import CrewAIAgent" in content
         assert "from crew import researcher, writer" in content
         assert 'CrewAIAgent("researcher", researcher)' in content
 
@@ -526,7 +526,7 @@ class TestAgentsPy:
         result = self._make_langgraph_result()
         path = generate_agents_py(result, tmp_path)
         content = path.read_text()
-        assert "from agentqa.adapters.langgraph import LangGraphNodeAgent" in content
+        assert "from riftcheck.adapters.langgraph import LangGraphNodeAgent" in content
         assert "importlib.util.spec_from_file_location" in content
         assert "exec_module(_mod)" in content
         assert 'LangGraphNodeAgent("researcher", getattr(_mod, "researcher_fn"))' in content
@@ -565,12 +565,12 @@ class TestAgentsPy:
 
         sys.path.insert(0, str(tmp_path))
         try:
-            spec = importlib.util.spec_from_file_location("_agentqa_broken_graph", agents_path)
+            spec = importlib.util.spec_from_file_location("_riftcheck_broken_graph", agents_path)
             assert spec is not None and spec.loader is not None
             mod = importlib.util.module_from_spec(spec)
             spec.loader.exec_module(mod)
             agents = mod.agents
-            from agentqa.adapters.langgraph import LangGraphNodeAgent
+            from riftcheck.adapters.langgraph import LangGraphNodeAgent
 
             assert isinstance(agents["researcher"], LangGraphNodeAgent)
             assert isinstance(agents["writer"], LangGraphNodeAgent)
@@ -581,7 +581,7 @@ class TestAgentsPy:
         result = self._make_autogen_result()
         path = generate_agents_py(result, tmp_path)
         content = path.read_text()
-        assert "from agentqa.adapters.autogen import AutoGenAgent" in content
+        assert "from riftcheck.adapters.autogen import AutoGenAgent" in content
         assert "from team import planner, coder" in content
         assert 'AutoGenAgent("planner", planner)' in content
 
@@ -596,7 +596,7 @@ class TestAgentsPy:
         path = generate_agents_py(result, tmp_path)
         content = path.read_text()
         assert "if not USE_REAL_AGENTS:" in content
-        assert "from agentqa.adapters.raw import RawAgent" in content
+        assert "from riftcheck.adapters.raw import RawAgent" in content
         assert "_researcher_handler" in content
         assert "_writer_handler" in content
 
@@ -683,11 +683,11 @@ class TestScanProject:
 # ===========================================================================
 
 class TestInitCLI:
-    """Test the `agentqa init` CLI command."""
+    """Test the `riftcheck init` CLI command."""
 
     def test_init_creates_files(self, tmp_project):
         from click.testing import CliRunner
-        from agentqa.cli import main
+        from riftcheck.cli import main
 
         project = tmp_project({"crew.py": CREWAI_DIRECT})
         runner = CliRunner()
@@ -699,7 +699,7 @@ class TestInitCLI:
 
     def test_init_refuses_overwrite(self, tmp_project):
         from click.testing import CliRunner
-        from agentqa.cli import main
+        from riftcheck.cli import main
 
         project = tmp_project({"crew.py": CREWAI_DIRECT})
         # First init
@@ -712,7 +712,7 @@ class TestInitCLI:
 
     def test_init_force_overwrites(self, tmp_project):
         from click.testing import CliRunner
-        from agentqa.cli import main
+        from riftcheck.cli import main
 
         project = tmp_project({"crew.py": CREWAI_DIRECT})
         runner = CliRunner()
@@ -722,7 +722,7 @@ class TestInitCLI:
 
     def test_init_output_directory(self, tmp_project, tmp_path):
         from click.testing import CliRunner
-        from agentqa.cli import main
+        from riftcheck.cli import main
 
         project = tmp_project({"crew.py": CREWAI_DIRECT})
         out_dir = tmp_path / "output"
@@ -736,7 +736,7 @@ class TestInitCLI:
 
     def test_init_no_framework_fails(self, tmp_project):
         from click.testing import CliRunner
-        from agentqa.cli import main
+        from riftcheck.cli import main
 
         project = tmp_project({"utils.py": NOT_AN_AGENT_FRAMEWORK})
         runner = CliRunner()
@@ -746,7 +746,7 @@ class TestInitCLI:
 
     def test_init_reports_agents(self, tmp_project):
         from click.testing import CliRunner
-        from agentqa.cli import main
+        from riftcheck.cli import main
 
         project = tmp_project({"crew.py": CREWAI_DIRECT})
         runner = CliRunner()
@@ -756,7 +756,7 @@ class TestInitCLI:
 
     def test_init_reports_topology(self, tmp_project):
         from click.testing import CliRunner
-        from agentqa.cli import main
+        from riftcheck.cli import main
 
         project = tmp_project({"graph.py": LANGGRAPH_BASIC})
         runner = CliRunner()
@@ -773,8 +773,8 @@ class TestLangGraphNodeAgent:
     """Test the LangGraphNodeAgent adapter with real node functions."""
 
     def test_basic_invocation(self):
-        from agentqa.adapters.langgraph import LangGraphNodeAgent
-        from agentqa.agent import Message
+        from riftcheck.adapters.langgraph import LangGraphNodeAgent
+        from riftcheck.agent import Message
 
         def node_fn(state):
             return {"messages": state.get("messages", []) + ["Hello from node"]}
@@ -787,8 +787,8 @@ class TestLangGraphNodeAgent:
         assert len(resp.content) > 0
 
     def test_state_accumulates(self):
-        from agentqa.adapters.langgraph import LangGraphNodeAgent
-        from agentqa.agent import Message
+        from riftcheck.adapters.langgraph import LangGraphNodeAgent
+        from riftcheck.agent import Message
 
         def node_fn(state):
             msgs = state.get("messages", [])
@@ -805,8 +805,8 @@ class TestLangGraphNodeAgent:
         assert state["count"] >= 2
 
     def test_setup_resets_state(self):
-        from agentqa.adapters.langgraph import LangGraphNodeAgent
-        from agentqa.agent import Message
+        from riftcheck.adapters.langgraph import LangGraphNodeAgent
+        from riftcheck.agent import Message
 
         def node_fn(state):
             return {"messages": state.get("messages", []) + ["Done"], "step": 1}
@@ -821,8 +821,8 @@ class TestLangGraphNodeAgent:
 
     def test_string_return(self):
         """Node functions that return strings should work too."""
-        from agentqa.adapters.langgraph import LangGraphNodeAgent
-        from agentqa.agent import Message
+        from riftcheck.adapters.langgraph import LangGraphNodeAgent
+        from riftcheck.agent import Message
 
         def simple_node(state):
             return "Just a string response"
@@ -834,8 +834,8 @@ class TestLangGraphNodeAgent:
 
     def test_non_empty_responses(self):
         """The key bug: node functions must produce non-empty responses."""
-        from agentqa.adapters.langgraph import LangGraphNodeAgent
-        from agentqa.agent import Message
+        from riftcheck.adapters.langgraph import LangGraphNodeAgent
+        from riftcheck.agent import Message
 
         def real_node(state):
             return {
@@ -863,8 +863,8 @@ class TestInitToRun:
     def test_langgraph_real_functions(self, tmp_path):
         """Create a LangGraph project with importable node functions,
         run init, then run the scenario with real agents."""
-        from agentqa.engine import SimulationEngine
-        from agentqa.scenario import load_scenario
+        from riftcheck.engine import SimulationEngine
+        from riftcheck.scenario import load_scenario
 
         # Write a LangGraph project with importable functions
         source = textwrap.dedent("""\
@@ -920,7 +920,7 @@ class TestInitToRun:
             assert "writer" in agents
 
             # Verify these are LangGraphNodeAgent, not RawAgent fallbacks
-            from agentqa.adapters.langgraph import LangGraphNodeAgent
+            from riftcheck.adapters.langgraph import LangGraphNodeAgent
             assert isinstance(agents["researcher"], LangGraphNodeAgent)
             assert isinstance(agents["writer"], LangGraphNodeAgent)
 

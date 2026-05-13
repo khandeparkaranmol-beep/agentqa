@@ -1,5 +1,5 @@
 # ============================================================================
-# AgentQA — Your First Scenario
+# Riftcheck — Your First Scenario
 # ============================================================================
 #
 # This file is a fully runnable scenario AND a tutorial. Every field is
@@ -10,12 +10,12 @@
 #   turn limit and that neither agent leaks the other's private data.
 #
 # HOW TO RUN:
-#   agentqa run examples/annotated/01_getting_started.yaml
-#   agentqa run examples/annotated/01_getting_started.yaml --runs 10
-#   agentqa run examples/annotated/01_getting_started.yaml --view   # opens HTML viewer
+#   riftcheck run examples/annotated/01_getting_started.yaml
+#   riftcheck run examples/annotated/01_getting_started.yaml --runs 10
+#   riftcheck run examples/annotated/01_getting_started.yaml --view   # opens HTML viewer
 #
 # WHAT YOU'LL SEE:
-#   AgentQA runs this scenario 5 times (the default), then reports which
+#   Riftcheck runs this scenario 5 times (the default), then reports which
 #   properties passed/failed across all runs with statistical pass rates.
 #   A single flaky pass isn't enough — you need confidence across N runs.
 #
@@ -58,14 +58,14 @@ turns: 10
 
 
 # --- runs (optional, default: 5) ---------------------------------------------
-# Number of times to repeat this scenario. AgentQA's core insight: a single
+# Number of times to repeat this scenario. Riftcheck's core insight: a single
 # pass/fail tells you nothing about non-deterministic agents. Run N times
 # and report statistical pass rates.
 #
 # Guidelines:
 #   3–5   Quick smoke test during development
 #   10    Good for CI pipelines
-#   20    Use --thorough flag (agentqa run ... --thorough) for release gates
+#   20    Use --thorough flag (riftcheck run ... --thorough) for release gates
 #
 # The CLI --runs flag overrides this value.
 runs: 5
@@ -79,7 +79,7 @@ runs: 5
 #   2. Used by property checkers like no_information_leak to detect leaks
 #
 # IMPORTANT: If the buyer's budget appears in the seller's messages, that's
-# a leak. AgentQA detects this automatically by scanning setup values.
+# a leak. Riftcheck detects this automatically by scanning setup values.
 setup:
   buyer:
     budget: 10000                     # Only the buyer should know this
@@ -94,7 +94,7 @@ setup:
 # Property checks to run after each simulation completes. Each assertion
 # references a built-in property checker by name and passes optional params.
 #
-# If no assertions are defined, AgentQA runs the simulation but reports no
+# If no assertions are defined, Riftcheck runs the simulation but reports no
 # pass/fail — useful for exploratory trace generation, but not for testing.
 #
 # FULL LIST OF PROPERTY CHECKERS (17 total):
@@ -168,6 +168,6 @@ assertions:
 #
 # NEXT STEPS:
 #   1. Write an agents.py in this directory (see examples/negotiation/agents.py)
-#   2. Run: agentqa run examples/annotated/01_getting_started.yaml --view
-#   3. Try: agentqa run examples/annotated/ --runs 10   (runs ALL scenarios)
+#   2. Run: riftcheck run examples/annotated/01_getting_started.yaml --view
+#   3. Try: riftcheck run examples/annotated/ --runs 10   (runs ALL scenarios)
 # ============================================================================

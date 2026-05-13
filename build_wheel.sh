@@ -1,5 +1,5 @@
 #!/bin/bash
-# Build a compiled-only wheel for AgentQA.
+# Build a compiled-only wheel for Riftcheck.
 #
 # This script:
 # 1. Compiles all .py files to .so/.pyd via Cython
@@ -13,16 +13,16 @@
 #   ./build_wheel.sh
 #
 # Output:
-#   dist/agentqa-*.whl  (platform-specific compiled wheel)
+#   dist/riftcheck-*.whl  (platform-specific compiled wheel)
 
 set -euo pipefail
 
-echo "=== AgentQA Compiled Wheel Builder ==="
+echo "=== Riftcheck Compiled Wheel Builder ==="
 echo ""
 
 # Step 1: Clean previous builds
 echo "[1/4] Cleaning previous builds..."
-rm -rf build/ dist/ src/*.egg-info src/agentqa/**/*.c src/agentqa/*.c
+rm -rf build/ dist/ src/*.egg-info src/riftcheck/**/*.c src/riftcheck/*.c
 
 # Step 2: Compile with Cython
 echo "[2/4] Compiling Python → C extensions with Cython..."
@@ -35,7 +35,7 @@ python -m build --wheel
 # Step 4: Verify no .py source in wheel (except __init__.py)
 echo "[4/4] Verifying wheel contents..."
 echo ""
-WHEEL=$(ls dist/agentqa-*.whl | head -1)
+WHEEL=$(ls dist/riftcheck-*.whl | head -1)
 echo "Built: $WHEEL"
 echo ""
 
