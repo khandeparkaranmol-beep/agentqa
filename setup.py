@@ -24,12 +24,22 @@ PACKAGE_DIR = SRC_DIR / "riftcheck"
 # - __init__.py files: needed for package discovery
 KEEP_AS_PY = {"__init__.py"}
 
+# Subpackages that must stay as pure Python (do not Cythonize).
+# Framework adapters call into third-party objects (AG2, LangGraph, etc.).
+# An inplace ``.so`` shadows the ``.py`` module; mixing that with conda /
+# heavy native stacks has produced hard segfaults during integration tests.
+SKIP_PACKAGE_SUBDIRS = frozenset({"adapters"})
+
 
 def find_extensions() -> list[Extension]:
     """Find all .py files to compile, excluding __init__.py files."""
     extensions = []
     for py_file in PACKAGE_DIR.rglob("*.py"):
         if py_file.name in KEEP_AS_PY:
+            continue
+
+        rel_to_package = py_file.relative_to(PACKAGE_DIR)
+        if rel_to_package.parts and rel_to_package.parts[0] in SKIP_PACKAGE_SUBDIRS:
             continue
 
         # Convert file path to dotted module name

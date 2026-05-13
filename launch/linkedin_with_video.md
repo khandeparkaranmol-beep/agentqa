@@ -16,11 +16,11 @@ Point it at your existing code (CrewAI, LangGraph, AutoGen, or raw Python). It A
 
 The video above shows the trace viewer in action — a single HTML file, no server, no account. Three views: Spotlight (cinematic replay), Constellation (agent network), Timeline (swimlane). Watch agents negotiate, see where checks fail, spot the exact turn things go wrong.
 
-16 property checkers. Five fault types. Open source, MIT licensed.
+16 property checkers. Five fault types.
 
-Guide: https://khandeparkaranmol-beep.github.io/riftcheck/
-Interactive demo: https://khandeparkaranmol-beep.github.io/riftcheck/viewer.html
-GitHub: https://github.com/khandeparkaranmol-beep/riftcheck
+Guide: https://riftcheck.ai/
+Interactive demo: https://riftcheck.ai/viewer.html
+
 
 What's the worst bug you've found that only shows up when agents talk to each other?
 

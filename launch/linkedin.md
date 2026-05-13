@@ -20,8 +20,8 @@ Point it at your existing codebase — CrewAI, LangGraph, AutoGen, or raw Python
 
 The --view flag opens a trace viewer — a single HTML file, no server, no account. You can watch exactly where the conversation broke down.
 
-Guide → https://khandeparkaranmol-beep.github.io/riftcheck/
-Interactive demo → https://khandeparkaranmol-beep.github.io/riftcheck/viewer.html
+Guide → https://riftcheck.ai/
+Interactive demo → https://riftcheck.ai/viewer.html
 
 What's the worst bug you've found that only appears when agents talk to each other?
 

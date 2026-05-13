@@ -32,6 +32,13 @@ Each test makes 1-4 LLM calls. Full suite costs ~$0.01-0.03 with Haiku.
 
 ## Known issues
 
+- **Segfault in AutoGen / AG2 tests (often Anaconda):** If you ever ran
+  ``python setup.py build_ext --inplace``, Cython may have produced
+  ``src/riftcheck/adapters/*.cpython-*-darwin.so`` (or similar). Those extensions
+  **shadow** the ``.py`` adapters and can **segfault** when calling into AG2.
+  Fix: delete the ``*.so`` / ``*.pyd`` files under ``src/riftcheck/adapters/``,
+  or use a clean venv and reinstall with ``pip install -e ".[dev]"`` (release
+  wheels keep adapters as pure Python; local inplace builds are the usual trap).
 - **CrewAI + Claude 4.6**: CrewAI uses assistant message prefilling, which Claude 4.6
   models reject with a 400 error ([crewAI#4798](https://github.com/crewAIInc/crewAI/issues/4798)).
   Tests use Haiku 4.5 to avoid this. If CrewAI ships a fix, switch to Sonnet 4.6.
