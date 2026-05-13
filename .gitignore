@@ -7,6 +7,13 @@ dist/
 *.egg
 .eggs/
 
+# Cython build artifacts (never commit these)
+*.so
+*.pyd
+*.c
+!src/agentqa/**/__init__.py
+wheelhouse/
+
 # Python build artifacts under build/ (project docs in build/*.md stay tracked)
 build/*
 !build/*.md

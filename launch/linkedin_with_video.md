@@ -1,32 +1,28 @@
-# LinkedIn Post (with video)
+# LinkedIn Post (with video) — AgentQA v0.7
 
-Everyone's building multi-agent AI systems. Nobody's testing them.
+_Uses the same Iteration 5 final copy as linkedin.md, adapted for video context._
 
-I kept finding bugs that only show up when agents talk to each other:
+I watched two AI agents deadlock for 47 turns — each politely waiting for the other to go first. Both passed their unit tests.
 
-→ An agent leaks another agent's private budget mid-negotiation
-→ Two agents deadlock, each waiting for the other forever
-→ A buyer repeats "I offer $210" four times in a loop
-→ A task gets marked "done" before it's actually finished
+That's the blind spot: we test agents in isolation, but the bugs live in the conversation between them. Information leaks, infinite loops, tasks marked "done" before they're finished — none of this shows up until agents interact.
 
-None of these show up in single-agent testing. They only emerge in the interaction.
-
-So I built AgentQA.
-
-Write a scenario in YAML. Inject faults (hallucinations, contradictions, message drops). Assert properties. Run it 50 times. Get statistical pass rates — not a single pass/fail.
-
-The video above shows the trace viewer — a single HTML file, no server, no account. Three views: Spotlight (cinematic replay), Constellation (agent network), and Timeline (swimlane diagram). Watch agents negotiate, see where checks fail, spot the exact turn things went wrong.
-
-15 property checkers based on the MAST failure taxonomy (NeurIPS 2025). Works with any Python agent framework.
+I built AgentQA to catch these before production does.
 
 pip install agentqa
+agentqa init .
+agentqa run scenario.yaml --view
 
-Open source. MIT licensed.
+Point it at your existing code (CrewAI, LangGraph, AutoGen, or raw Python). It AST-scans your agents, generates adversarial test scenarios with fault injection, runs them multiple times, and reports pass rates with confidence intervals — so you know whether 4/5 passing is signal or noise.
 
+The video above shows the trace viewer in action — a single HTML file, no server, no account. Three views: Spotlight (cinematic replay), Constellation (agent network), Timeline (swimlane). Watch agents negotiate, see where checks fail, spot the exact turn things go wrong.
+
+16 property checkers. Five fault types. Open source, MIT licensed.
+
+Guide: https://khandeparkaranmol-beep.github.io/AgentQA/
+Interactive demo: https://khandeparkaranmol-beep.github.io/AgentQA/viewer.html
 GitHub: https://github.com/khandeparkaranmol-beep/AgentQA
-Try the demo (no install): [LINK_TO_GITHUB_PAGES]
 
-What's the worst multi-agent bug you've shipped to production?
+What's the worst bug you've found that only shows up when agents talk to each other?
 
 ---
 
@@ -34,7 +30,7 @@ What's the worst multi-agent bug you've shipped to production?
 
 - Attach agent-qa-upload.mov as a native LinkedIn video (not a YouTube link — native gets 3-5x more reach)
 - Post Tuesday-Thursday, 8-10am ET
-- No hashtags in the post body — add 3 in the first comment: #AI #testing #opensource
-- First comment: "Interactive demo here — no install, just click: [LINK]. Also on PyPI: pip install agentqa"
-- Reply to every comment in the first hour
+- No hashtags in the post body — add 2-3 in the first comment: #AI #testing #opensource
+- First comment: "Interactive demo here — no install, just click: [demo link]. Full guide: [guide link]"
+- Reply to every comment within 60 minutes (2.4x reach boost)
 - The video is the hook — LinkedIn autoplay means people will see the viewer before they read a word
