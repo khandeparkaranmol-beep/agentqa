@@ -76,8 +76,14 @@ jobs:
     if: >
       github.event_name == 'release' ||
       (github.event_name == 'workflow_dispatch' && github.event.inputs.publish == 'yes')
+    # id-token: PyPI trusted publishing (OIDC).
+    # actions: read — required to download artifacts from this run (any scope omitted
+    #   when you set `permissions` defaults to none and breaks download-artifact).
+    # contents: read — safe default for GITHUB_TOKEN.
     permissions:
-      id-token: write  # trusted publishing
+      id-token: write
+      actions: read
+      contents: read
 
     steps:
       - name: Download all wheel artifacts
