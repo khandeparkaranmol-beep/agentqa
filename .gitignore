@@ -26,6 +26,10 @@ ENV/
 .env
 .env.*
 
+# PyPI API token for local `twine upload` (see pypi-token.example)
+pypi-token
+.pypi-token
+
 # AgentQA traces
 .agentqa/
 

@@ -1,0 +1,7 @@
+# Local secret file: `pypi-token` (gitignored).
+#
+# 1. cp pypi-token.example pypi-token
+# 2. Replace the contents of `pypi-token` with your API token alone — one line,
+#    no comments, no quotes. https://pypi.org/manage/account/token/
+#
+# Upload: TWINE_USERNAME=__token__ TWINE_PASSWORD="$(cat pypi-token | tr -d '\n')" twine upload dist/...
