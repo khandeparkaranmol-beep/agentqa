@@ -18,9 +18,9 @@ The video above shows the trace viewer in action — a single HTML file, no serv
 
 16 property checkers. Five fault types. Open source, MIT licensed.
 
-Guide: https://khandeparkaranmol-beep.github.io/Riftcheck/
-Interactive demo: https://khandeparkaranmol-beep.github.io/Riftcheck/viewer.html
-GitHub: https://github.com/khandeparkaranmol-beep/Riftcheck
+Guide: https://khandeparkaranmol-beep.github.io/riftcheck/
+Interactive demo: https://khandeparkaranmol-beep.github.io/riftcheck/viewer.html
+GitHub: https://github.com/khandeparkaranmol-beep/riftcheck
 
 What's the worst bug you've found that only shows up when agents talk to each other?
 

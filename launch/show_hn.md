@@ -42,9 +42,9 @@ Trace viewer is a single self-contained HTML file — three view modes (spotligh
 
 MIT licensed.
 
-Guide: https://khandeparkaranmol-beep.github.io/Riftcheck/
-Live demo: https://khandeparkaranmol-beep.github.io/Riftcheck/viewer.html
-GitHub: https://github.com/khandeparkaranmol-beep/Riftcheck
+Guide: https://khandeparkaranmol-beep.github.io/riftcheck/
+Live demo: https://khandeparkaranmol-beep.github.io/riftcheck/viewer.html
+GitHub: https://github.com/khandeparkaranmol-beep/riftcheck
 PyPI: https://pypi.org/project/riftcheck/
 
 Feedback I'd value: what properties would you want to check that aren't here yet?
@@ -81,12 +81,12 @@ converges_within       4/5 passed   80%  CI [36%–97%]
 
 16 property checkers total (MAST taxonomy, NeurIPS 2025): information leak, deadlock, role boundary, step repetition, convergence, premature termination, state continuity, conversation reset, task adherence, communication quality, peer input, clarification, reasoning-action consistency, task compliance, output schema, information flow.
 
-The trace viewer exports to a single HTML file — no server. Three views: spotlight (cinematic step-through), constellation (agent network), timeline (swimlane). Live demo: https://khandeparkaranmol-beep.github.io/Riftcheck/viewer.html
+The trace viewer exports to a single HTML file — no server. Three views: spotlight (cinematic step-through), constellation (agent network), timeline (swimlane). Live demo: https://khandeparkaranmol-beep.github.io/riftcheck/viewer.html
 
 MIT licensed. ~2K lines of Python, no heavy dependencies (PyYAML, Click, Pydantic).
 
-Guide: https://khandeparkaranmol-beep.github.io/Riftcheck/
-GitHub: https://github.com/khandeparkaranmol-beep/Riftcheck
+Guide: https://khandeparkaranmol-beep.github.io/riftcheck/
+GitHub: https://github.com/khandeparkaranmol-beep/riftcheck
 
 What multi-agent failure modes am I missing?
 
@@ -124,13 +124,13 @@ Every scenario runs N times. Results use Wilson score confidence intervals so yo
 - `reasoning_action_consistency` — catches "I will NOT share the data" immediately followed by sharing the data
 - `no_conversation_reset` — state fingerprinting to detect agent amnesia
 
-Full list + what each catches: https://khandeparkaranmol-beep.github.io/Riftcheck/#properties
+Full list + what each catches: https://khandeparkaranmol-beep.github.io/riftcheck/#properties
 
-Trace viewer is a single HTML file with three views. No server. Live demo: https://khandeparkaranmol-beep.github.io/Riftcheck/viewer.html
+Trace viewer is a single HTML file with three views. No server. Live demo: https://khandeparkaranmol-beep.github.io/riftcheck/viewer.html
 
 ~2K lines of Python. MIT licensed. Dependencies: PyYAML, Click, Pydantic.
 
-GitHub: https://github.com/khandeparkaranmol-beep/Riftcheck
+GitHub: https://github.com/khandeparkaranmol-beep/riftcheck
 
 What interaction bugs have you hit that this wouldn't catch?
 
@@ -172,9 +172,9 @@ Price negotiation (5 runs)
 
 ~2K lines of Python. PyYAML + Click + Pydantic. MIT licensed.
 
-Live demo: https://khandeparkaranmol-beep.github.io/Riftcheck/viewer.html
-Guide: https://khandeparkaranmol-beep.github.io/Riftcheck/
-GitHub: https://github.com/khandeparkaranmol-beep/Riftcheck
+Live demo: https://khandeparkaranmol-beep.github.io/riftcheck/viewer.html
+Guide: https://khandeparkaranmol-beep.github.io/riftcheck/
+GitHub: https://github.com/khandeparkaranmol-beep/riftcheck
 
 What failure modes would you add?
 
@@ -212,12 +212,12 @@ converges_within       4/5   80%  CI [36%–97%]
 
 16 property checkers (MAST taxonomy, NeurIPS 2025). The interesting ones: `no_information_leak` checks if private data leaks across agents. `reasoning_action_consistency` catches "I won't share the data" immediately followed by sharing it. `no_conversation_reset` uses state fingerprinting to detect agent amnesia.
 
-Trace viewer exports to a single HTML file — three views, per-property CI bars, no server. Live demo: https://khandeparkaranmol-beep.github.io/Riftcheck/viewer.html
+Trace viewer exports to a single HTML file — three views, per-property CI bars, no server. Live demo: https://khandeparkaranmol-beep.github.io/riftcheck/viewer.html
 
 ~2K lines of Python. Dependencies: PyYAML, Click, Pydantic. MIT licensed.
 
-Guide: https://khandeparkaranmol-beep.github.io/Riftcheck/
-GitHub: https://github.com/khandeparkaranmol-beep/Riftcheck
+Guide: https://khandeparkaranmol-beep.github.io/riftcheck/
+GitHub: https://github.com/khandeparkaranmol-beep/riftcheck
 PyPI: https://pypi.org/project/riftcheck/
 
 What interaction failure modes am I missing?

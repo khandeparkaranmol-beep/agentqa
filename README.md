@@ -8,7 +8,7 @@ Riftcheck catches the bugs that only exist when AI agents talk to each other —
 pip install riftcheck
 ```
 
-**[Full Guide](https://khandeparkaranmol-beep.github.io/Riftcheck/)** · **[Interactive Demo](https://khandeparkaranmol-beep.github.io/Riftcheck/viewer.html)**
+**[Full Guide](https://khandeparkaranmol-beep.github.io/riftcheck/)** · **[Interactive Demo](https://khandeparkaranmol-beep.github.io/riftcheck/viewer.html)**
 
 ## Get Started in 30 Seconds
 
