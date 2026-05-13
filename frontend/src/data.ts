@@ -106,7 +106,7 @@ const SAMPLE_DATA: import("./types").TraceData = {
   mode: "trace",
   title: "procurement_negotiation — Run 5 / 5",
   topology: "mesh",
-  riftcheck_version: "0.5.0",
+  riftcheck_version: "1.0.1",
   agent_roles: {
     coordinator: "Orchestrates the procurement workflow",
     analyst: "Researches market data and suppliers",

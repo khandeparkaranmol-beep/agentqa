@@ -1,4 +1,4 @@
-# LinkedIn Post — Riftcheck v1.0
+# LinkedIn Post — Riftcheck v1.0.1
 
 ## Final Post (copy-paste ready)
 
