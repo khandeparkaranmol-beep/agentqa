@@ -1,62 +1,21 @@
-Riftcheck — Source Available License
+MIT License
 
-Copyright (c) 2026 Anmol Khandeparkar. All rights reserved.
+Copyright (c) 2026 Anmol Khandeparkar
 
-1. GRANT OF LICENSE
+Permission is hereby granted, free of charge, to any person obtaining a copy
+of this software and associated documentation files (the "Software"), to deal
+in the Software without restriction, including without limitation the rights
+to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
+copies of the Software, and to permit persons to whom the Software is
+furnished to do so, subject to the following conditions:
 
-   You may use, copy, and modify this software free of charge for any
-   purpose, including commercial use, subject to the restrictions below.
+The above copyright notice and this permission notice shall be included in all
+copies or substantial portions of the Software.
 
-   No payment is required at this time. The copyright holder reserves
-   the right to introduce commercial licensing terms in the future.
-   Any such change will apply only to versions released after the
-   licensing change — your right to use this version under these terms
-   is perpetual.
-
-2. RESTRICTIONS
-
-   a. You may NOT redistribute, sublicense, or sell copies of this
-      software, in whole or in part, without prior written consent from
-      the copyright holder.
-
-   b. You may NOT publish, host, or make publicly available the source
-      code of this software or any substantial portion thereof, except
-      via the official distribution channels (PyPI, official GitHub).
-
-   c. You may NOT remove or alter any copyright notices, license text,
-      or attribution contained in this software.
-
-   d. You may NOT use this software to create a competing product or
-      service — that is, a product or service whose primary purpose is
-      testing, validating, or simulating multi-agent AI systems.
-
-3. CONTRIBUTIONS
-
-   If you submit a pull request, patch, or other contribution to this
-   project, you grant the copyright holder a perpetual, irrevocable,
-   worldwide, royalty-free license to use, modify, and distribute your
-   contribution as part of this software under any license terms the
-   copyright holder chooses.
-
-4. NO WARRANTY
-
-   THIS SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
-   EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-   MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE, AND
-   NONINFRINGEMENT. IN NO EVENT SHALL THE COPYRIGHT HOLDER BE LIABLE FOR
-   ANY CLAIM, DAMAGES, OR OTHER LIABILITY, WHETHER IN AN ACTION OF
-   CONTRACT, TORT, OR OTHERWISE, ARISING FROM, OUT OF, OR IN CONNECTION
-   WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-
-5. TERMINATION
-
-   This license terminates automatically if you violate any of its terms.
-   Upon termination, you must destroy all copies of the software in your
-   possession.
-
-6. FUTURE LICENSING
-
-   The copyright holder may release future versions of this software
-   under different license terms, including commercial terms. Users of
-   this version retain their rights under this license regardless of
-   future changes.
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
+AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
+LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
+OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
+SOFTWARE.

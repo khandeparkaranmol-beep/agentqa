@@ -145,10 +145,10 @@ riftcheck replay <trace.jsonl> --scenario <file>  # re-check properties
 
 Riftcheck's design is informed by peer-reviewed research on multi-agent system failures:
 
-- **MAST** (NeurIPS 2025) — multi-agent failure taxonomy mapping to our property checkers
-- **MAESTRO** (arXiv 2601.00481) — multi-run statistical testing methodology
-- **MARBLE** (ACL 2025) — communication topology classification
+- **MAST** (Cemri et al., NeurIPS 2025 Datasets & Benchmarks) — 14-mode multi-agent failure taxonomy; Riftcheck's 16 property checkers map to it
+- **MAESTRO** (arXiv 2601.00481) — multi-agent evaluation suite for testing, reliability, and observability; informs Riftcheck's multi-run statistical methodology
+- **MultiAgentBench / MARBLE** (Zhu et al., ACL 2025 Main) — communication topology taxonomy (star, chain, tree, graph) used in `topology.py`
 
 ## License
 
-Proprietary — free for non-commercial use. See [LICENSE](LICENSE) for details.
+MIT — see [LICENSE](LICENSE).
