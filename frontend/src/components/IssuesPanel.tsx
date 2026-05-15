@@ -1,16 +1,21 @@
 import { useMemo } from "react";
-import type { MessageEvent, RunSummary } from "../types";
+import type { MessageEvent, PropertyResult, RunSummary } from "../types";
 import { getPropertyMeta, AGENT_COLORS } from "../labels";
 
 interface Props {
   messages: MessageEvent[];
   agents: string[];
   visibleUpTo: number;
+  /** Canonical source of truth for property failures. Includes both
+   *  turn-attributed failures (e.g. step_repetition at turn 9) and
+   *  trace-level failures (e.g. converges_within, no_deadlock — no turn).
+   *  When omitted, falls back to message.violatedProperties for legacy callers. */
+  results?: PropertyResult[];
   runSummary?: RunSummary;
 }
 
 interface Issue {
-  turn: number;
+  turn: number;        // -1 sentinel for trace-level (post-hoc) failures
   type: "violation";
   label: string;
   detail: string;
@@ -18,9 +23,46 @@ interface Issue {
   agentName: string;
 }
 
-export function IssuesPanel({ messages, agents, visibleUpTo, runSummary }: Props) {
+export function IssuesPanel({ messages, agents, visibleUpTo, results, runSummary }: Props) {
   const issues = useMemo(() => {
-    const result: Issue[] = [];
+    const out: Issue[] = [];
+
+    // Primary path: read directly from property results. This catches both
+    // turn-attributed failures (e.g. step_repetition at turn 9) AND
+    // trace-level failures (e.g. converges_within, no_deadlock) which have
+    // no message attachment and are otherwise invisible.
+    if (results && results.length > 0) {
+      for (const r of results) {
+        if (r.passed) continue;
+        const hasTurn = typeof r.turn === "number" && r.turn >= 0;
+        const turn = hasTurn ? (r.turn as number) : -1;
+        // For turn-attributed failures, hide until playback has scrubbed
+        // past that turn. Trace-level failures (turn === -1) appear as
+        // soon as playback starts since they have no time anchor.
+        if (hasTurn && turn > visibleUpTo) continue;
+
+        const meta = getPropertyMeta(r.property_name);
+        const agentName = (hasTurn && messages[turn]) ? messages[turn].sender : "";
+        const agentIdx = agentName ? agents.indexOf(agentName) : -1;
+        const color = agentIdx >= 0
+          ? AGENT_COLORS[agentIdx % AGENT_COLORS.length]
+          : "#94a3b8";  // neutral slate for trace-level
+
+        out.push({
+          turn,
+          type: "violation",
+          label: meta.badgeLabel,
+          detail: r.details || meta.failedLabel,
+          color,
+          agentName,
+        });
+      }
+      return out;
+    }
+
+    // Legacy fallback: only for callers that don't yet pass `results`.
+    // Reads message.violatedProperties (which itself only sees turn-attributed
+    // failures with non-null turn — won't catch trace-level ones).
     for (let i = 0; i <= Math.min(visibleUpTo, messages.length - 1); i++) {
       const msg = messages[i];
       const agentIdx = agents.indexOf(msg.sender);
@@ -29,7 +71,7 @@ export function IssuesPanel({ messages, agents, visibleUpTo, runSummary }: Props
       if (msg.violatedProperties.length > 0) {
         for (const prop of msg.violatedProperties) {
           const meta = getPropertyMeta(prop);
-          result.push({
+          out.push({
             turn: msg.turn,
             type: "violation",
             label: meta.badgeLabel,
@@ -41,10 +83,14 @@ export function IssuesPanel({ messages, agents, visibleUpTo, runSummary }: Props
       }
       // Faults are intentional test inputs, not failures — omit from issues
     }
-    return result;
-  }, [messages, agents, visibleUpTo]);
+    return out;
+  }, [results, messages, agents, visibleUpTo]);
 
-  if (visibleUpTo < 0) return null;
+  // Hide the panel only before playback starts AND when we have nothing
+  // useful to show. Trace-level failures from `results` should appear
+  // even at visibleUpTo === -1 (they have no time anchor).
+  const hasTraceLevel = !!results?.some(r => !r.passed && (r.turn === undefined || r.turn === null || r.turn < 0));
+  if (visibleUpTo < 0 && !hasTraceLevel) return null;
 
   return (
     <div className="space-y-2">
@@ -139,7 +185,7 @@ export function IssuesPanel({ messages, agents, visibleUpTo, runSummary }: Props
                   style={{ backgroundColor: issue.color }}
                 />
                 <span className="text-[10px] font-mono text-slate-400 dark:text-slate-500">
-                  T{issue.turn}
+                  {issue.turn >= 0 ? `T${issue.turn}` : "trace"}
                 </span>
                 <span
                   className="text-[10px] font-semibold px-1.5 py-0.5 rounded-md"

@@ -358,7 +358,7 @@ export function App() {
 
                     {/* Panels — always visible on desktop, toggled on mobile */}
                     <div className={`space-y-3 ${showDetails ? "" : "hidden lg:block"}`}>
-                      <IssuesPanel messages={messages} agents={agents} visibleUpTo={replay.visibleUpTo} runSummary={data.run_summary} />
+                      <IssuesPanel messages={messages} agents={agents} visibleUpTo={replay.visibleUpTo} results={data.results} runSummary={data.run_summary} />
                       <StateTimeline events={activeEvents} agents={agents} visibleUpTo={replay.visibleUpTo} />
                       <CostBreakdown messages={messages} agents={agents} />
                       <TopologyGraph messages={messages} agents={agents} topology={data.topology} />
