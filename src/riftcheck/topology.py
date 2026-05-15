@@ -31,7 +31,7 @@ def classify_topology(trace: Trace) -> str:
         return "unknown"
 
     # Build directed adjacency: sender → set of receivers
-    adj: dict[str, set[str]] = defaultdict(set)
+    _adj: defaultdict[str, set[str]] = defaultdict(set)
     nodes: set[str] = set()
 
     for event in messages:
@@ -39,9 +39,11 @@ def classify_topology(trace: Trace) -> str:
         receiver = event.data.get("receiver", "")
         if not sender or not receiver or receiver.startswith("__"):
             continue
-        adj[sender].add(receiver)
+        _adj[sender].add(receiver)
         nodes.add(sender)
         nodes.add(receiver)
+
+    adj: dict[str, set[str]] = dict(_adj)
 
     if not nodes:
         return "unknown"
@@ -51,10 +53,11 @@ def classify_topology(trace: Trace) -> str:
         return "chain"
 
     out_degrees = {node: len(adj.get(node, set())) for node in nodes}
-    in_degrees: dict[str, int] = defaultdict(int)
+    _in_deg: defaultdict[str, int] = defaultdict(int)
     for node, receivers in adj.items():
         for r in receivers:
-            in_degrees[r] += 1
+            _in_deg[r] += 1
+    in_degrees: dict[str, int] = dict(_in_deg)
 
     # Star: exactly one node talks to all others, others only talk back to it
     high_out = [node for node, d in out_degrees.items() if d >= n - 1]
@@ -88,7 +91,7 @@ def topology_summary(trace: Trace) -> dict:
         Dict with keys: topology, agents, unique_edges, avg_out_degree.
     """
     messages = trace.get_messages()
-    adj: dict[str, set[str]] = defaultdict(set)
+    _adj2: defaultdict[str, set[str]] = defaultdict(set)
     nodes: set[str] = set()
 
     for event in messages:
@@ -96,10 +99,11 @@ def topology_summary(trace: Trace) -> dict:
         receiver = event.data.get("receiver", "")
         if not sender or not receiver or receiver.startswith("__"):
             continue
-        adj[sender].add(receiver)
+        _adj2[sender].add(receiver)
         nodes.add(sender)
         nodes.add(receiver)
 
+    adj: dict[str, set[str]] = dict(_adj2)
     total_edges = sum(len(v) for v in adj.values())
     avg_out = total_edges / len(nodes) if nodes else 0.0
 
