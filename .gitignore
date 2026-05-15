@@ -55,3 +55,16 @@ htmlcov/
 
 # Local ideation drafts (not part of the project)
 archive-ideation/
+
+# Internal product docs (not shipped)
+product/
+
+# Frontend build artifacts (do not commit)
+frontend/node_modules/
+frontend/dist/
+
+# Study / research experiments — should live OUTSIDE this repo entirely.
+# After moving study/ to a sibling directory, this is defense-in-depth in case
+# anything is left behind or accidentally recreated.
+study/
+study/**
